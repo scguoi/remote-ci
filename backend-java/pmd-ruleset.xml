@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<ruleset name="Alibaba P3C Java Code Quality Ruleset"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+    <description>
+        阿里巴巴Java开发手册PMD规则集
+        基于《阿里巴巴Java开发手册》的最佳实践
+        Focus on Alibaba Java Development Guidelines
+    </description>
+
+    <!-- 阿里巴巴注释规约 -->
+    <rule ref="rulesets/java/ali-comment.xml"/>
+    
+    <!-- 阿里巴巴并发处理规约 -->
+    <rule ref="rulesets/java/ali-concurrent.xml"/>
+    
+    <!-- 阿里巴巴常量定义规约 -->
+    <rule ref="rulesets/java/ali-constant.xml"/>
+    
+    <!-- 阿里巴巴异常处理规约 -->
+    <rule ref="rulesets/java/ali-exception.xml"/>
+    
+    <!-- 阿里巴巴流程控制规约 -->
+    <rule ref="rulesets/java/ali-flowcontrol.xml"/>
+    
+    <!-- 阿里巴巴命名风格规约 -->
+    <rule ref="rulesets/java/ali-naming.xml"/>
+    
+    <!-- 阿里巴巴面向对象规约 -->
+    <rule ref="rulesets/java/ali-oop.xml"/>
+    
+    <!-- 阿里巴巴ORM映射规约 -->
+    <rule ref="rulesets/java/ali-orm.xml"/>
+    
+    <!-- 阿里巴巴其他规约 -->
+    <rule ref="rulesets/java/ali-other.xml"/>
+    
+    <!-- 阿里巴巴集合处理规约 -->
+    <rule ref="rulesets/java/ali-set.xml"/>
+
+    <!-- 自定义规则配置 -->
+    
+    <!-- 排除某些在演示代码中不适用的规则 -->
+    <exclude-pattern>.*/generated/.*</exclude-pattern>
+    <exclude-pattern>.*/test/.*</exclude-pattern>
+
+</ruleset>

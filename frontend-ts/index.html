@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登录系统 - Frontend TypeScript</title>
+    <link rel="stylesheet" href="src/styles/main.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <h1 class="login-title">用户登录</h1>
+            
+            <form id="loginForm" class="login-form" novalidate>
+                <div class="form-group">
+                    <label for="username" class="form-label">用户名</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username"
+                        class="form-input"
+                        placeholder="请输入用户名"
+                        required
+                        autocomplete="username"
+                    />
+                    <span class="error-message" id="usernameError"></span>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password" class="form-label">密码</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password"
+                        class="form-input"
+                        placeholder="请输入密码"
+                        required
+                        autocomplete="current-password"
+                    />
+                    <span class="error-message" id="passwordError"></span>
+                </div>
+                
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input 
+                            type="checkbox" 
+                            id="rememberMe" 
+                            name="rememberMe"
+                            class="checkbox-input"
+                        />
+                        <span class="checkbox-text">记住我</span>
+                    </label>
+                </div>
+                
+                <button type="submit" class="login-button" id="loginButton">
+                    <span class="button-text">登录</span>
+                    <span class="button-loading" style="display: none;">登录中...</span>
+                </button>
+            </form>
+            
+            <div class="login-status" id="loginStatus" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script type="module" src="src/main.ts"></script>
+</body>
+</html>
