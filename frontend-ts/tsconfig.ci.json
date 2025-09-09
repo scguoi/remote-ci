@@ -11,7 +11,9 @@
     "coverage",
     "**/*.test.ts",
     "**/*.test.tsx",
-    "src/__tests__/**/*"
+    "src/__tests__/**/*",
+    "jest.config.ts",
+    "vite.config.ts"
   ],
   "typeAcquisition": {
     "enable": false
