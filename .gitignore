@@ -16,6 +16,10 @@ bin/
 pkg/
 vendor/
 
+# Go tool caches
+.gocache/
+.golangci-cache/
+
 # Java/Maven
 target/
 *.class

@@ -37,9 +37,13 @@ check-tools-typescript: ## Check TypeScript development tools
 		echo "$(YELLOW)Checking TypeScript tools...$(RESET)"; \
 		command -v node >/dev/null 2>&1 || (echo "$(RED)Node.js is not installed$(RESET)" && exit 1); \
 		command -v $(NPM) >/dev/null 2>&1 || (echo "$(RED)npm is not installed$(RESET)" && exit 1); \
-		cd $(TS_DIR) && $(NPM) list typescript >/dev/null 2>&1 || (echo "$(RED)TypeScript is not installed. Run 'make install-tools-typescript'$(RESET)" && exit 1); \
-		cd $(TS_DIR) && $(NPM) list prettier >/dev/null 2>&1 || (echo "$(RED)Prettier is not installed. Run 'make install-tools-typescript'$(RESET)" && exit 1); \
-		cd $(TS_DIR) && $(NPM) list eslint >/dev/null 2>&1 || (echo "$(RED)ESLint is not installed. Run 'make install-tools-typescript'$(RESET)" && exit 1); \
+		if [ -d "$(TS_DIR)" ]; then \
+			(cd $(TS_DIR) && $(NPM) list typescript >/dev/null 2>&1) || echo "$(RED)TypeScript is not installed. Run 'make install-tools-typescript'$(RESET)"; \
+			(cd $(TS_DIR) && $(NPM) list prettier >/dev/null 2>&1) || echo "$(RED)Prettier is not installed. Run 'make install-tools-typescript'$(RESET)"; \
+			(cd $(TS_DIR) && $(NPM) list eslint >/dev/null 2>&1) || echo "$(RED)ESLint is not installed. Run 'make install-tools-typescript'$(RESET)"; \
+		else \
+			echo "$(RED)TypeScript directory $(TS_DIR) not found$(RESET)"; \
+		fi; \
 		echo "$(GREEN)TypeScript tools available$(RESET)"; \
 	else \
 		echo "$(BLUE)Skipping TypeScript tools (no TypeScript project detected)$(RESET)"; \
