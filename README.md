@@ -99,7 +99,10 @@ make check-tools
 
 ```bash
 # Go HTTP服务器
-cd backend-go && go run main.go
+# 推荐：统一命令运行
+make run-go
+# 或直接运行：
+cd backend-go && go run ./cmd/server
 # 访问 http://localhost:8080
 
 # TypeScript应用
@@ -133,8 +136,10 @@ make fmt-python             # Python: black + isort
 make check                  # 运行所有质量检查
 make check-tools           # 验证开发工具安装状态
 
-# Go质量检查
+# Go质量检查与测试
 make check-go              # Go项目完整检查
+make test-go               # 运行Go单元测试
+make coverage-go           # 生成覆盖率报告（文本+HTML: backend-go/coverage/coverage.html）
 make check-gocyclo         # 圈复杂度检查（阈值：10）
 make check-staticcheck     # 静态分析检查
 make check-golangci-lint   # 综合lint检查
