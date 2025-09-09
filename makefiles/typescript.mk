@@ -71,7 +71,7 @@ check-typescript: ## Check TypeScript code quality
 		echo "$(YELLOW)Checking TypeScript code quality...$(RESET)"; \
 		cd $(TS_DIR); \
 		echo "$(YELLOW)Running TypeScript type checking...$(RESET)" && \
-		npm run type-check && \
+		npm run type-check:ci && \
 		echo "$(YELLOW)Running ESLint...$(RESET)" && \
 		npx $(ESLINT) "**/*.{ts,tsx}" && \
 		echo "$(GREEN)TypeScript code quality checks completed$(RESET)"; \
