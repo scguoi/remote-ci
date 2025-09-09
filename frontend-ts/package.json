@@ -12,8 +12,8 @@
     "test:watch": "jest --watch",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,html,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,html,css}\"",
-    "lint": "eslint \"src/**/*.{ts,tsx}\"",
-    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix",
+    "lint": "npx eslint \"src/**/*.{ts,tsx}\"",
+    "lint:fix": "npx eslint \"src/**/*.{ts,tsx}\" --fix",
     "type-check": "tsc --noEmit",
     "type-check:ci": "tsc --project tsconfig.ci.json --noEmit",
     "quality": "npm run lint && npm run type-check"
