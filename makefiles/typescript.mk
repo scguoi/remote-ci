@@ -6,7 +6,7 @@
 NPM := npm
 PRETTIER := prettier
 ESLINT := eslint
-TSC := tsc
+TSC := typescript
 
 # TypeScript project variables
 TS_DIR := frontend-ts
@@ -71,7 +71,7 @@ check-typescript: ## Check TypeScript code quality
 		echo "$(YELLOW)Checking TypeScript code quality...$(RESET)"; \
 		cd $(TS_DIR); \
 		echo "$(YELLOW)Running TypeScript type checking...$(RESET)" && \
-		npx $(TSC) --noEmit && \
+		npm run type-check && \
 		echo "$(YELLOW)Running ESLint...$(RESET)" && \
 		npx $(ESLINT) "**/*.{ts,tsx}" && \
 		echo "$(GREEN)TypeScript code quality checks completed$(RESET)"; \
