@@ -73,7 +73,7 @@ check-typescript: ## Check TypeScript code quality
 		echo "$(YELLOW)Running TypeScript type checking...$(RESET)" && \
 		npm run type-check:ci && \
 		echo "$(YELLOW)Running ESLint...$(RESET)" && \
-		npx $(ESLINT) "**/*.{ts,tsx}" && \
+		npm run lint && \
 		echo "$(GREEN)TypeScript code quality checks completed$(RESET)"; \
 	else \
 		echo "$(BLUE)Skipping TypeScript checks (no TypeScript project)$(RESET)"; \
