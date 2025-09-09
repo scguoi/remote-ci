@@ -341,8 +341,8 @@ jobs:
         working-directory: frontend-ts
         run: |
           echo "🔍 Running TypeScript quality checks..."
-          npx tsc --project tsconfig.ci.json --noEmit
-          npx eslint "src/**/*.{ts,tsx}" --max-warnings 20
+          npm run type-check:ci
+          npm run lint
           echo "✅ TypeScript quality check passed"
 
       - name: TypeScript tests
