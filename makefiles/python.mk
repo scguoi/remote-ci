@@ -122,3 +122,58 @@ check-pylint-python: ## Run pylint static analysis
 		cd $(PYTHON_DIR) && $(PYTHON) -m $(PYLINT) --fail-under=8.0 *.py; \
 		echo "$(GREEN)Pylint analysis passed$(RESET)"; \
 	fi
+
+# =============================================================================
+# Python Testing and Coverage
+# =============================================================================
+
+test-python: ## Run Python tests
+	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+		echo "$(YELLOW)Running Python tests...$(RESET)"; \
+		cd $(PYTHON_DIR) && $(PYTHON) -m pytest tests/ -v; \
+		echo "$(GREEN)Python tests completed$(RESET)"; \
+	else \
+		echo "$(BLUE)Skipping Python tests (no Python project)$(RESET)"; \
+	fi
+
+coverage-python: ## Run Python tests with coverage
+	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+		echo "$(YELLOW)Running Python coverage...$(RESET)"; \
+		cd $(PYTHON_DIR) && \
+		$(PYTHON) -m pytest tests/ --cov=app --cov-report=term --cov-report=html:coverage_html; \
+		echo "$(GREEN)Coverage report generated: $(PYTHON_DIR)/coverage_html/index.html$(RESET)"; \
+	else \
+		echo "$(BLUE)Skipping Python coverage (no Python project)$(RESET)"; \
+	fi
+
+# =============================================================================
+# Python Application Management
+# =============================================================================
+
+run-python: ## Run Python FastAPI service
+	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+		echo "$(YELLOW)Starting Python FastAPI service... (Ctrl+C to stop)$(RESET)"; \
+		cd $(PYTHON_DIR) && $(PYTHON) main.py; \
+	else \
+		echo "$(BLUE)No Python project to run$(RESET)"; \
+	fi
+
+install-deps-python: ## Install Python dependencies
+	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+		echo "$(YELLOW)Installing Python dependencies...$(RESET)"; \
+		cd $(PYTHON_DIR) && $(PYTHON) -m pip install -r requirements.txt; \
+		echo "$(GREEN)Python dependencies installed$(RESET)"; \
+	else \
+		echo "$(BLUE)Skipping Python dependencies (no Python project)$(RESET)"; \
+	fi
+
+lint-python: ## Run comprehensive Python linting (flake8 + mypy + pylint)
+	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+		echo "$(YELLOW)Running comprehensive Python linting...$(RESET)"; \
+		make check-flake8-python && \
+		make check-mypy-python && \
+		make check-pylint-python; \
+		echo "$(GREEN)All Python linting checks passed$(RESET)"; \
+	else \
+		echo "$(BLUE)Skipping Python linting (no Python project)$(RESET)"; \
+	fi

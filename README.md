@@ -105,6 +105,13 @@ make run-go
 cd backend-go && go run ./cmd/server
 # 访问 http://localhost:8080
 
+# Python FastAPI服务器
+# 推荐：统一命令运行
+make run-python
+# 或直接运行：
+cd backend-python && python main.py
+# 访问 http://localhost:8000/docs（自动生成API文档）
+
 # TypeScript应用
 cd frontend-ts && npm run dev
 
@@ -148,6 +155,15 @@ make check-golangci-lint   # 综合lint检查
 make check-typescript      # TypeScript项目完整检查
 make check-eslint-typescript   # ESLint语法和风格检查
 make check-tsc-typescript      # TypeScript类型检查
+
+# Python质量检查与测试
+make check-python          # Python项目完整检查（flake8 + mypy + pylint）
+make test-python           # 运行Python单元测试和集成测试
+make coverage-python       # 生成覆盖率报告（HTML: backend-python/coverage_html/index.html）
+make lint-python           # 综合Python linting检查
+make check-flake8-python   # 语法和风格检查
+make check-mypy-python     # 类型检查
+make check-pylint-python   # 静态分析
 
 # Java质量检查
 make check-java            # Java项目完整检查（含阿里巴巴P3C规范）
