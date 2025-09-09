@@ -1,0 +1,182 @@
+# Spring Boot Configuration for User Management System
+# This configuration supports multiple environments with proper database setup
+
+spring:
+  application:
+    name: user-management-system
+  
+  # Database Configuration
+  datasource:
+    url: jdbc:mysql://localhost:3306/user_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+      idle-timeout: 300000
+      connection-timeout: 20000
+      max-lifetime: 1200000
+      pool-name: UserManagementHikariCP
+  
+  # Flyway Configuration
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true
+  
+  # JPA/Hibernate Configuration (for potential future use)
+  jpa:
+    hibernate:
+      ddl-auto: none  # Let Flyway handle schema management
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+  
+  # JSON Configuration
+  jackson:
+    time-zone: Asia/Shanghai
+    date-format: yyyy-MM-dd HH:mm:ss
+    default-property-inclusion: NON_NULL
+  
+  # Validation Configuration
+  validation:
+    enabled: true
+
+# MyBatis Configuration
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 30
+    use-generated-keys: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  type-aliases-package: com.example.common.entity
+
+# Server Configuration
+server:
+  port: 8080
+  servlet:
+    context-path: /
+  compression:
+    enabled: true
+    mime-types: application/json,text/plain,text/css,text/html,application/javascript
+  error:
+    include-exception: false
+    include-stacktrace: never
+
+# Management/Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+  info:
+    env:
+      enabled: true
+
+# Logging Configuration
+logging:
+  level:
+    root: INFO
+    com.example: DEBUG
+    org.springframework.web: INFO
+    org.mybatis: DEBUG
+    com.zaxxer.hikari: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/user-management.log
+    max-size: 10MB
+    max-history: 30
+
+# Application-specific Configuration
+app:
+  name: User Management System
+  version: 1.0.0
+  description: Multi-module Spring Boot project for user management with MySQL
+  
+  # Database connection pool settings
+  database:
+    pool:
+      initial-size: 5
+      min-idle: 5
+      max-active: 50
+    
+  # API settings
+  api:
+    version: v1
+    max-page-size: 100
+    default-page-size: 10
+
+---
+# Development Profile
+spring:
+  config:
+    activate:
+      on-profile: dev
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/user_db_dev?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: password
+  
+  jpa:
+    show-sql: true
+
+logging:
+  level:
+    com.example: DEBUG
+    org.mybatis: DEBUG
+
+---
+# Test Profile
+spring:
+  config:
+    activate:
+      on-profile: test
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/user_db_test?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: password
+  
+  flyway:
+    clean-disabled: false  # Allow clean in test environment
+
+---
+# Production Profile
+spring:
+  config:
+    activate:
+      on-profile: prod
+  
+  datasource:
+    url: ${DATABASE_URL:jdbc:mysql://localhost:3306/user_db}
+    username: ${DATABASE_USERNAME:root}
+    password: ${DATABASE_PASSWORD:password}
+    hikari:
+      maximum-pool-size: 30
+      minimum-idle: 10
+  
+  flyway:
+    clean-disabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+logging:
+  level:
+    root: WARN
+    com.example: INFO
+    org.mybatis: WARN
+  file:
+    name: /var/log/user-management/application.log

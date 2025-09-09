@@ -28,12 +28,15 @@
     </Match>
     -->
     
-    <!-- Example: Exclude specific bug patterns -->
-    <!--
+    <!-- Exclude Spring Boot dependency injection patterns -->
     <Match>
         <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
     </Match>
-    -->
+    
+    <!-- Exclude CRLF injection warnings for controlled logging -->
+    <Match>
+        <Bug pattern="CRLF_INJECTION_LOGS"/>
+    </Match>
     
     <!-- Example: Exclude by method name pattern -->
     <!--
