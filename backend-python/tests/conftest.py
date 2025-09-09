@@ -62,8 +62,6 @@ def create_test_app():
     @test_app.get("/", response_model=APIResponse, tags=["根路径"])
     async def root():
         """根路径欢迎信息."""
-        from datetime import datetime
-
         return APIResponse(
             success=True,
             message=f"欢迎使用 {settings.project_name}",

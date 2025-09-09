@@ -1,4 +1,4 @@
-name: Code Quality & Testing Pipeline
+name: Parallel Multi-Language CI
 
 on:
   push:
@@ -16,17 +16,16 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Python version for Makefile commands
   PYTHON: python3
 
 jobs:
   # ============================================================================
-  # Stage 1: Project Detection
+  # Stage 1: Setup All Environments (Once for All Languages)
   # ============================================================================
-  detect:
-    name: Smart Project Detection
+  setup:
+    name: Setup All Environments
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     outputs:
       has-go: ${{ steps.detect.outputs.has-go }}
       has-java: ${{ steps.detect.outputs.has-java }}
@@ -84,101 +83,16 @@ jobs:
           echo "active-projects=$ACTIVE" >> $GITHUB_OUTPUT
           echo "🎯 Active projects: $ACTIVE"
 
-  # ============================================================================
-  # Stage 2: Code Format Check (Fast Feedback)
-  # ============================================================================
-  format-check:
-    name: Code Format Check
-    runs-on: ubuntu-latest
-    needs: detect
-    timeout-minutes: 5
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Setup environments efficiently for format checking only
-      - name: Setup Go (if needed)
-        if: needs.detect.outputs.has-go == 'true'
+      # Setup all language environments in parallel sub-steps
+      - name: Setup Go environment
+        if: steps.detect.outputs.has-go == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
           cache-dependency-path: backend-go/go.sum
 
-      - name: Setup Java (if needed)
-        if: needs.detect.outputs.has-java == 'true'
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-          cache: maven
-
-      - name: Setup Python (if needed)
-        if: needs.detect.outputs.has-python == 'true'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Setup Node.js (if needed)
-        if: needs.detect.outputs.has-typescript == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-          cache-dependency-path: frontend-ts/package-lock.json
-
-      # Install minimal dependencies for formatting
-      - name: Install Python formatting tools
-        if: needs.detect.outputs.has-python == 'true'
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install black==23.11.0 isort==5.12.0
-
-      - name: Install TypeScript formatting tools
-        if: needs.detect.outputs.has-typescript == 'true'
-        working-directory: frontend-ts
-        run: |
-          npm ci --only=dev --ignore-scripts
-          npm install prettier @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint
-
-      # Run format checking
-      - name: Check code formatting
-        run: |
-          echo "🎯 Checking code formatting for: ${{ needs.detect.outputs.active-projects }}"
-          
-          # Use smart format with dry-run/check mode
-          if ! make format --dry-run 2>/dev/null; then
-            echo "⚠️ make format --dry-run not supported, trying make smart_format --check"
-            if ! make smart_format --check 2>/dev/null; then
-              echo "❌ Code formatting check failed"
-              echo "💡 Run 'make format' locally to fix formatting issues"
-              exit 1
-            fi
-          fi
-          
-          echo "✅ Code formatting check passed!"
-
-  # ============================================================================
-  # Stage 3: Code Quality Check (Parallel with lightweight setup)
-  # ============================================================================
-  quality-check:
-    name: Code Quality Check
-    runs-on: ubuntu-latest
-    needs: [detect, format-check]
-    timeout-minutes: 8
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Lightweight environment setup for quality checks
-      - name: Setup Go tools
-        if: needs.detect.outputs.has-go == 'true'
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-          cache-dependency-path: backend-go/go.sum
-
-      - name: Setup Java environment
-        if: needs.detect.outputs.has-java == 'true'
+      - name: Setup Java environment  
+        if: steps.detect.outputs.has-java == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -186,164 +100,252 @@ jobs:
           cache: maven
 
       - name: Setup Python environment
-        if: needs.detect.outputs.has-python == 'true'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Setup Node.js environment
-        if: needs.detect.outputs.has-typescript == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-          cache-dependency-path: frontend-ts/package-lock.json
-
-      # Install quality check dependencies
-      - name: Install Go quality tools
-        if: needs.detect.outputs.has-go == 'true'
-        working-directory: backend-go
-        run: |
-          go install honnef.co/go/tools/cmd/staticcheck@2025.1.1
-          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.3.0
-          go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
-
-      - name: Install Python quality tools
-        if: needs.detect.outputs.has-python == 'true'
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install flake8==6.1.0 mypy==1.7.1 pylint==3.0.3
-
-      - name: Install TypeScript quality tools
-        if: needs.detect.outputs.has-typescript == 'true'
-        working-directory: frontend-ts
-        run: |
-          npm ci --only=dev
-          npm install typescript@^5.0.0 @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint
-
-      # Run quality checks per language
-      - name: Run Go quality checks
-        if: needs.detect.outputs.has-go == 'true'
-        working-directory: backend-go
-        run: |
-          echo "🔍 Go quality checks..."
-          gocyclo -over 10 $(find . -name "*.go" | grep -v vendor)
-          staticcheck ./...
-          golangci-lint run
-          echo "✅ Go quality checks passed"
-
-      - name: Run Java quality checks  
-        if: needs.detect.outputs.has-java == 'true'
-        working-directory: backend-java
-        run: |
-          echo "🔍 Java quality checks..."
-          mvn clean compile -q
-          mvn spotless:check -q
-          mvn checkstyle:check -q
-          echo "✅ Java quality checks passed"
-
-      - name: Run Python quality checks
-        if: needs.detect.outputs.has-python == 'true'
-        working-directory: backend-python
-        run: |
-          echo "🔍 Python quality checks..."
-          python3 -m flake8 .
-          python3 -m mypy . --ignore-missing-imports
-          echo "✅ Python quality checks passed"
-
-      - name: Run TypeScript quality checks
-        if: needs.detect.outputs.has-typescript == 'true'
-        working-directory: frontend-ts
-        run: |
-          echo "🔍 TypeScript quality checks..."
-          npx tsc --project tsconfig.ci.json --noEmit
-          npx eslint "src/**/*.{ts,tsx}" --max-warnings 20
-          echo "✅ TypeScript quality checks passed"
-
-  # ============================================================================
-  # Stage 4: Unit Tests (Parallel)
-  # ============================================================================
-  unit-tests:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    needs: [detect, format-check]
-    timeout-minutes: 10
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Setup test environments
-      - name: Setup Go
-        if: needs.detect.outputs.has-go == 'true'
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-          cache-dependency-path: backend-go/go.sum
-
-      - name: Setup Java
-        if: needs.detect.outputs.has-java == 'true'
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-          cache: maven
-
-      - name: Setup Python
-        if: needs.detect.outputs.has-python == 'true'
+        if: steps.detect.outputs.has-python == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: pip
           cache-dependency-path: backend-python/requirements.txt
 
-      - name: Setup Node.js
-        if: needs.detect.outputs.has-typescript == 'true'
+      - name: Setup Node.js environment
+        if: steps.detect.outputs.has-typescript == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
           cache-dependency-path: frontend-ts/package-lock.json
 
-      # Install test dependencies
-      - name: Install Python dependencies
-        if: needs.detect.outputs.has-python == 'true'
+      # Install all tools and dependencies
+      - name: Install Go tools and dependencies
+        if: steps.detect.outputs.has-go == 'true'
+        working-directory: backend-go
         run: |
+          echo "Installing Go tools..."
+          go install golang.org/x/tools/cmd/goimports@latest
+          go install mvdan.cc/gofumpt@latest  
+          go install github.com/segmentio/golines@latest
+          go install honnef.co/go/tools/cmd/staticcheck@2025.1.1
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.3.0
+          go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
+          echo "✅ Go tools installed"
+
+      - name: Install Java dependencies
+        if: steps.detect.outputs.has-java == 'true'
+        working-directory: backend-java
+        run: |
+          echo "Installing Java dependencies..."
+          mvn dependency:go-offline -B -q
+          echo "✅ Java dependencies installed"
+
+      - name: Install Python tools and dependencies
+        if: steps.detect.outputs.has-python == 'true'
+        run: |
+          echo "Installing Python tools and dependencies..."
           python3 -m pip install --upgrade pip
           python3 -m pip install -r backend-python/requirements.txt
-          python3 -m pip install pytest==7.4.3 pytest-asyncio==0.21.1 pytest-cov==4.1.0
+          python3 -m pip install black==23.11.0 isort==5.12.0 flake8==6.1.0 mypy==1.7.1 pylint==3.0.3 pytest==7.4.3 pytest-asyncio==0.21.1 pytest-cov==4.1.0
+          echo "✅ Python tools and dependencies installed"
 
-      - name: Install TypeScript test dependencies
-        if: needs.detect.outputs.has-typescript == 'true'
+      - name: Install TypeScript tools and dependencies
+        if: steps.detect.outputs.has-typescript == 'true'
         working-directory: frontend-ts
-        run: npm ci
+        run: |
+          echo "Installing TypeScript tools and dependencies..."
+          npm ci
+          echo "✅ TypeScript tools and dependencies installed"
 
-      # Run tests per language
-      - name: Run Go tests
-        if: needs.detect.outputs.has-go == 'true'
+  # ============================================================================
+  # Stage 2: Go Complete Pipeline (Parallel)
+  # ============================================================================
+  go-pipeline:
+    name: Go Pipeline
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.has-go == 'true'
+    timeout-minutes: 8
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Go environment
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+          cache-dependency-path: backend-go/go.sum
+
+      - name: Install Go tools
+        working-directory: backend-go
+        run: |
+          go install golang.org/x/tools/cmd/goimports@latest
+          go install mvdan.cc/gofumpt@latest  
+          go install github.com/segmentio/golines@latest
+          go install honnef.co/go/tools/cmd/staticcheck@2025.1.1
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.3.0
+          go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
+
+      - name: Go format check
+        working-directory: backend-go
+        run: |
+          echo "🎨 Checking Go formatting..."
+          if ! gofmt -l . | grep -q .; then
+            echo "✅ Go formatting check passed"
+          else
+            echo "❌ Go formatting issues found:"
+            gofmt -l .
+            exit 1
+          fi
+
+      - name: Go quality check
+        working-directory: backend-go
+        run: |
+          echo "🔍 Running Go quality checks..."
+          gocyclo -over 10 $(find . -name "*.go" | grep -v vendor)
+          staticcheck ./...
+          golangci-lint run
+          echo "✅ Go quality check passed"
+
+      - name: Go tests
         working-directory: backend-go
         run: |
           echo "🧪 Running Go tests..."
           go test ./... -v
           echo "✅ Go tests passed"
 
-      - name: Run Java tests
-        if: needs.detect.outputs.has-java == 'true'
+  # ============================================================================
+  # Stage 3: Java Complete Pipeline (Parallel)
+  # ============================================================================
+  java-pipeline:
+    name: Java Pipeline
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.has-java == 'true'
+    timeout-minutes: 8
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java environment
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+
+      - name: Install dependencies
+        working-directory: backend-java
+        run: mvn dependency:go-offline -B -q
+
+      - name: Java format check
+        working-directory: backend-java
+        run: |
+          echo "🎨 Checking Java formatting..."
+          mvn spotless:check -q
+          echo "✅ Java formatting check passed"
+
+      - name: Java quality check
+        working-directory: backend-java
+        run: |
+          echo "🔍 Running Java quality checks..."
+          mvn clean compile -q
+          mvn checkstyle:check -q
+          echo "✅ Java quality check passed"
+
+      - name: Java tests
         working-directory: backend-java
         run: |
           echo "🧪 Running Java tests..."
           mvn test -q
           echo "✅ Java tests passed"
 
-      - name: Run Python tests
-        if: needs.detect.outputs.has-python == 'true'
+  # ============================================================================
+  # Stage 4: Python Complete Pipeline (Parallel)
+  # ============================================================================
+  python-pipeline:
+    name: Python Pipeline
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.has-python == 'true'
+    timeout-minutes: 8
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python environment
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: backend-python/requirements.txt
+
+      - name: Install Python tools and dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r backend-python/requirements.txt
+          python3 -m pip install black==23.11.0 isort==5.12.0 flake8==6.1.0 mypy==1.7.1 pylint==3.0.3 pytest==7.4.3 pytest-asyncio==0.21.1 pytest-cov==4.1.0
+
+      - name: Python format check
+        working-directory: backend-python
+        run: |
+          echo "🎨 Checking Python formatting..."
+          python3 -m black --check .
+          python3 -m isort --check-only .
+          echo "✅ Python formatting check passed"
+
+      - name: Python quality check
+        working-directory: backend-python
+        run: |
+          echo "🔍 Running Python quality checks..."
+          python3 -m flake8 . --max-line-length=88 --extend-ignore=E203,W503
+          python3 -m mypy . --ignore-missing-imports
+          echo "✅ Python quality check passed"
+
+      - name: Python tests
         working-directory: backend-python
         run: |
           echo "🧪 Running Python tests..."
           python3 -m pytest tests/ -v
           echo "✅ Python tests passed"
 
-      - name: Run TypeScript tests
-        if: needs.detect.outputs.has-typescript == 'true'
+  # ============================================================================
+  # Stage 5: TypeScript Complete Pipeline (Parallel)
+  # ============================================================================
+  typescript-pipeline:
+    name: TypeScript Pipeline
+    runs-on: ubuntu-latest
+    needs: setup
+    if: needs.setup.outputs.has-typescript == 'true'
+    timeout-minutes: 8
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend-ts/package-lock.json
+
+      - name: Install TypeScript dependencies
+        working-directory: frontend-ts
+        run: npm ci
+
+      - name: TypeScript format check
+        working-directory: frontend-ts
+        run: |
+          echo "🎨 Checking TypeScript formatting..."
+          npx prettier --check "**/*.{ts,tsx,js,jsx,json,md}"
+          echo "✅ TypeScript formatting check passed"
+
+      - name: TypeScript quality check
+        working-directory: frontend-ts
+        run: |
+          echo "🔍 Running TypeScript quality checks..."
+          npx tsc --project tsconfig.ci.json --noEmit
+          npx eslint "src/**/*.{ts,tsx}" --max-warnings 20
+          echo "✅ TypeScript quality check passed"
+
+      - name: TypeScript tests
         working-directory: frontend-ts
         run: |
           echo "🧪 Running TypeScript tests..."
@@ -356,29 +358,54 @@ jobs:
   summary:
     name: Pipeline Summary
     runs-on: ubuntu-latest
-    needs: [detect, format-check, quality-check, unit-tests]
+    needs: [setup, go-pipeline, java-pipeline, python-pipeline, typescript-pipeline]
     if: always()
     steps:
       - name: Generate pipeline summary
         run: |
-          echo "=== 🚀 Code Quality & Testing Pipeline Summary ==="
+          echo "=== 🚀 Parallel Multi-Language CI Summary ==="
           echo ""
-          echo "📊 Detected projects: ${{ needs.detect.outputs.active-projects }}"
+          echo "📊 Detected projects: ${{ needs.setup.outputs.active-projects }}"
           echo ""
-          echo "📋 Pipeline stages:"
-          echo "  🎯 Project Detection: ${{ needs.detect.result }}"
-          echo "  ✨ Format Check: ${{ needs.format-check.result }}"  
-          echo "  🔍 Quality Check: ${{ needs.quality-check.result }}"
-          echo "  🧪 Unit Tests: ${{ needs.unit-tests.result }}"
+          echo "📋 Pipeline results:"
+          echo "  🎯 Environment Setup: ${{ needs.setup.result }}"
+          echo "  🐹 Go Pipeline: ${{ needs.go-pipeline.result }}"
+          echo "  ☕ Java Pipeline: ${{ needs.java-pipeline.result }}"  
+          echo "  🐍 Python Pipeline: ${{ needs.python-pipeline.result }}"
+          echo "  🟦 TypeScript Pipeline: ${{ needs.typescript-pipeline.result }}"
           echo ""
           
-          if [[ "${{ needs.format-check.result }}" == "success" && 
-                "${{ needs.quality-check.result }}" == "success" && 
-                "${{ needs.unit-tests.result }}" == "success" ]]; then
-            echo "✅ 🎉 Pipeline completed successfully! Code quality verified"
-            echo "💡 Ready for code review and merge"
+          # Count successes
+          SUCCESS_COUNT=0
+          TOTAL_COUNT=0
+          
+          if [[ "${{ needs.setup.outputs.has-go }}" == "true" ]]; then
+            TOTAL_COUNT=$((TOTAL_COUNT + 1))
+            [[ "${{ needs.go-pipeline.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          fi
+          
+          if [[ "${{ needs.setup.outputs.has-java }}" == "true" ]]; then
+            TOTAL_COUNT=$((TOTAL_COUNT + 1))
+            [[ "${{ needs.java-pipeline.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          fi
+          
+          if [[ "${{ needs.setup.outputs.has-python }}" == "true" ]]; then
+            TOTAL_COUNT=$((TOTAL_COUNT + 1))
+            [[ "${{ needs.python-pipeline.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          fi
+          
+          if [[ "${{ needs.setup.outputs.has-typescript }}" == "true" ]]; then
+            TOTAL_COUNT=$((TOTAL_COUNT + 1))
+            [[ "${{ needs.typescript-pipeline.result }}" == "success" ]] && SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
+          fi
+          
+          echo "📊 Success rate: $SUCCESS_COUNT/$TOTAL_COUNT pipelines passed"
+          
+          if [[ "$SUCCESS_COUNT" == "$TOTAL_COUNT" && "${{ needs.setup.result }}" == "success" ]]; then
+            echo "✅ 🎉 All pipelines completed successfully!"
+            echo "💡 Code quality verified - ready for review and merge"
           else
-            echo "❌ 🚨 Pipeline failed - please check the issues above"
-            echo "💡 Fix the failing stages and commit again"
+            echo "❌ 🚨 Some pipelines failed - check individual results above"
+            echo "💡 Fix the failing pipelines and commit again"
             exit 1
           fi
