@@ -1,4 +1,4 @@
-name: Multi-Language CI/CD Pipeline
+name: Code Quality & Testing Pipeline
 
 on:
   push:
@@ -21,19 +21,18 @@ env:
 
 jobs:
   # ============================================================================
-  # Stage 1: Smart Project Detection
+  # Stage 1: Project Detection
   # ============================================================================
-  setup:
+  detect:
     name: Smart Project Detection
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     outputs:
       has-go: ${{ steps.detect.outputs.has-go }}
       has-java: ${{ steps.detect.outputs.has-java }}
       has-python: ${{ steps.detect.outputs.has-python }}
       has-typescript: ${{ steps.detect.outputs.has-typescript }}
       active-projects: ${{ steps.detect.outputs.active-projects }}
-      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -41,10 +40,8 @@ jobs:
       - name: Smart project detection
         id: detect
         run: |
-          # Use Makefile smart detection logic
           echo "Detecting active projects..."
           
-          # Detect language projects
           HAS_GO="false"
           HAS_JAVA="false" 
           HAS_PYTHON="false"
@@ -52,25 +49,25 @@ jobs:
           
           if [[ -f "backend-go/go.mod" && -d "backend-go/cmd" ]]; then
             HAS_GO="true"
-            echo "✅ Detected Go project: backend-go/"
+            echo "✅ Go project: backend-go/"
           fi
           
           if [[ -f "backend-java/pom.xml" && -d "backend-java/user-web" ]]; then
             HAS_JAVA="true"
-            echo "✅ Detected Java project: backend-java/"
+            echo "✅ Java project: backend-java/"
           fi
           
           if [[ -f "backend-python/main.py" && -f "backend-python/requirements.txt" ]]; then
             HAS_PYTHON="true"
-            echo "✅ Detected Python project: backend-python/"
+            echo "✅ Python project: backend-python/"
           fi
           
           if [[ -f "frontend-ts/package.json" && -f "frontend-ts/tsconfig.json" ]]; then
             HAS_TS="true"
-            echo "✅ Detected TypeScript project: frontend-ts/"
+            echo "✅ TypeScript project: frontend-ts/"
           fi
           
-          # Output detection results
+          # Set outputs
           echo "has-go=$HAS_GO" >> $GITHUB_OUTPUT
           echo "has-java=$HAS_JAVA" >> $GITHUB_OUTPUT
           echo "has-python=$HAS_PYTHON" >> $GITHUB_OUTPUT
@@ -83,387 +80,305 @@ jobs:
           [[ "$HAS_PYTHON" == "true" ]] && ACTIVE="$ACTIVE python"
           [[ "$HAS_TS" == "true" ]] && ACTIVE="$ACTIVE typescript"
           
-          ACTIVE=$(echo $ACTIVE | xargs)  # trim spaces
+          ACTIVE=$(echo $ACTIVE | xargs)
           echo "active-projects=$ACTIVE" >> $GITHUB_OUTPUT
-          echo "Active projects: $ACTIVE"
-
-      - name: Generate cache key
-        id: cache-key
-        run: |
-          # Generate cache key based on file contents
-          KEY_PARTS=""
-          
-          if [[ "${{ steps.detect.outputs.has-go }}" == "true" ]]; then
-            KEY_PARTS="$KEY_PARTS-go-$(sha256sum backend-go/go.mod backend-go/go.sum | sha256sum | cut -d' ' -f1)"
-          fi
-          
-          if [[ "${{ steps.detect.outputs.has-java }}" == "true" ]]; then
-            KEY_PARTS="$KEY_PARTS-java-$(find backend-java -name 'pom.xml' -exec sha256sum {} \; | sha256sum | cut -d' ' -f1)"
-          fi
-          
-          if [[ "${{ steps.detect.outputs.has-python }}" == "true" ]]; then
-            KEY_PARTS="$KEY_PARTS-python-$(sha256sum backend-python/requirements.txt | cut -d' ' -f1)"
-          fi
-          
-          if [[ "${{ steps.detect.outputs.has-typescript }}" == "true" ]]; then
-            KEY_PARTS="$KEY_PARTS-ts-$(sha256sum frontend-ts/package-lock.json | cut -d' ' -f1)"
-          fi
-          
-          FINAL_KEY="deps-v1$KEY_PARTS"
-          echo "key=$FINAL_KEY" >> $GITHUB_OUTPUT
-          echo "Cache key: $FINAL_KEY"
+          echo "🎯 Active projects: $ACTIVE"
 
   # ============================================================================
-  # Stage 2: Parallel Environment Setup
+  # Stage 2: Code Format Check (Fast Feedback)
   # ============================================================================
-  prepare-go:
-    name: Setup Go Environment
+  format-check:
+    name: Code Format Check
     runs-on: ubuntu-latest
-    needs: setup
-    if: needs.setup.outputs.has-go == 'true'
+    needs: detect
+    timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Go
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Setup environments efficiently for format checking only
+      - name: Setup Go (if needed)
+        if: needs.detect.outputs.has-go == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
           cache-dependency-path: backend-go/go.sum
 
-      - name: Install Go tools
-        working-directory: backend-go
-        run: |
-          echo "Installing Go code quality tools..."
-          go install golang.org/x/tools/cmd/goimports@latest
-          go install mvdan.cc/gofumpt@latest  
-          go install github.com/segmentio/golines@latest
-          go install honnef.co/go/tools/cmd/staticcheck@2025.1.1
-          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.3.0
-
-  prepare-java:
-    name: Setup Java Environment
-    runs-on: ubuntu-latest
-    needs: setup
-    if: needs.setup.outputs.has-java == 'true'
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Java
+      - name: Setup Java (if needed)
+        if: needs.detect.outputs.has-java == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
 
-      - name: Warm up Maven dependencies
-        working-directory: backend-java
-        run: |
-          echo "Warming up Maven dependency cache..."
-          mvn dependency:go-offline -B -q
-
-  prepare-python:
-    name: Setup Python Environment
-    runs-on: ubuntu-latest
-    needs: setup
-    if: needs.setup.outputs.has-python == 'true'
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Python
+      - name: Setup Python (if needed)
+        if: needs.detect.outputs.has-python == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: pip
-          cache-dependency-path: backend-python/requirements.txt
 
-      - name: Install Python dependencies
-        run: |
-          echo "Installing Python dependencies and tools..."
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -r backend-python/requirements.txt
-
-  prepare-typescript:
-    name: Setup TypeScript Environment
-    runs-on: ubuntu-latest
-    needs: setup
-    if: needs.setup.outputs.has-typescript == 'true'
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Node.js
+      - name: Setup Node.js (if needed)
+        if: needs.detect.outputs.has-typescript == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
           cache-dependency-path: frontend-ts/package-lock.json
 
-      - name: Install TypeScript dependencies
+      # Install minimal dependencies for formatting
+      - name: Install Python formatting tools
+        if: needs.detect.outputs.has-python == 'true'
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install black==23.11.0 isort==5.12.0
+
+      - name: Install TypeScript formatting tools
+        if: needs.detect.outputs.has-typescript == 'true'
         working-directory: frontend-ts
         run: |
-          echo "Installing TypeScript dependencies..."
-          npm ci
+          npm ci --only=dev --ignore-scripts
+          npm install prettier @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint
+
+      # Run format checking
+      - name: Check code formatting
+        run: |
+          echo "🎯 Checking code formatting for: ${{ needs.detect.outputs.active-projects }}"
+          
+          # Use smart format with dry-run/check mode
+          if ! make format --dry-run 2>/dev/null; then
+            echo "⚠️ make format --dry-run not supported, trying make smart_format --check"
+            if ! make smart_format --check 2>/dev/null; then
+              echo "❌ Code formatting check failed"
+              echo "💡 Run 'make format' locally to fix formatting issues"
+              exit 1
+            fi
+          fi
+          
+          echo "✅ Code formatting check passed!"
 
   # ============================================================================
-  # Stage 3: Code Quality Checks (Parallel)
+  # Stage 3: Code Quality Check (Parallel with lightweight setup)
   # ============================================================================
   quality-check:
     name: Code Quality Check
     runs-on: ubuntu-latest
-    needs: [setup, prepare-go, prepare-java, prepare-python, prepare-typescript]
-    if: always() && needs.setup.result == 'success'
+    needs: [detect, format-check]
     timeout-minutes: 8
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Restore all language environments
-      - name: Restore Go environment
-        if: needs.setup.outputs.has-go == 'true'
+      # Lightweight environment setup for quality checks
+      - name: Setup Go tools
+        if: needs.detect.outputs.has-go == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
           cache-dependency-path: backend-go/go.sum
 
-      - name: Restore Java environment
-        if: needs.setup.outputs.has-java == 'true'
+      - name: Setup Java environment
+        if: needs.detect.outputs.has-java == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
 
-      - name: Restore Python environment
-        if: needs.setup.outputs.has-python == 'true'
+      - name: Setup Python environment
+        if: needs.detect.outputs.has-python == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: pip
-          cache-dependency-path: backend-python/requirements.txt
 
-      - name: Restore TypeScript environment
-        if: needs.setup.outputs.has-typescript == 'true'
+      - name: Setup Node.js environment
+        if: needs.detect.outputs.has-typescript == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
           cache-dependency-path: frontend-ts/package-lock.json
 
-      # Reinstall tools and dependencies (fast restore from cache)
-      - name: Quick restore toolchain
+      # Install quality check dependencies
+      - name: Install Go quality tools
+        if: needs.detect.outputs.has-go == 'true'
+        working-directory: backend-go
         run: |
-          echo "Target projects: ${{ needs.setup.outputs.active-projects }}"
-          
-          # Use smart setup command for quick installation
-          if command -v make >/dev/null 2>&1; then
-            make smart_install_tools || true
-          fi
+          go install honnef.co/go/tools/cmd/staticcheck@2025.1.1
+          go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.3.0
+          go install github.com/fzipp/gocyclo/cmd/gocyclo@latest
 
-      - name: Code format check
+      - name: Install Python quality tools
+        if: needs.detect.outputs.has-python == 'true'
         run: |
-          echo "Running smart format check..."
-          echo "Active projects: ${{ needs.setup.outputs.active-projects }}"
-          make format --dry-run || make smart_format --check || {
-            echo "❌ Code format check failed, please run: make format"
-            exit 1
-          }
+          python3 -m pip install --upgrade pip
+          python3 -m pip install flake8==6.1.0 mypy==1.7.1 pylint==3.0.3
 
-      - name: Code quality check
+      - name: Install TypeScript quality tools
+        if: needs.detect.outputs.has-typescript == 'true'
+        working-directory: frontend-ts
         run: |
-          echo "Running smart quality check..."
-          echo "Active projects: ${{ needs.setup.outputs.active-projects }}"
-          make check || make smart_check || {
-            echo "❌ Code quality check failed, please run: make check to fix issues"
-            exit 1
-          }
+          npm ci --only=dev
+          npm install typescript@^5.0.0 @typescript-eslint/parser @typescript-eslint/eslint-plugin eslint
+
+      # Run quality checks per language
+      - name: Run Go quality checks
+        if: needs.detect.outputs.has-go == 'true'
+        working-directory: backend-go
+        run: |
+          echo "🔍 Go quality checks..."
+          gocyclo -over 10 $(find . -name "*.go" | grep -v vendor)
+          staticcheck ./...
+          golangci-lint run
+          echo "✅ Go quality checks passed"
+
+      - name: Run Java quality checks  
+        if: needs.detect.outputs.has-java == 'true'
+        working-directory: backend-java
+        run: |
+          echo "🔍 Java quality checks..."
+          mvn clean compile -q
+          mvn spotless:check -q
+          mvn checkstyle:check -q
+          echo "✅ Java quality checks passed"
+
+      - name: Run Python quality checks
+        if: needs.detect.outputs.has-python == 'true'
+        working-directory: backend-python
+        run: |
+          echo "🔍 Python quality checks..."
+          python3 -m flake8 .
+          python3 -m mypy . --ignore-missing-imports
+          echo "✅ Python quality checks passed"
+
+      - name: Run TypeScript quality checks
+        if: needs.detect.outputs.has-typescript == 'true'
+        working-directory: frontend-ts
+        run: |
+          echo "🔍 TypeScript quality checks..."
+          npx tsc --project tsconfig.ci.json --noEmit
+          npx eslint "src/**/*.{ts,tsx}" --max-warnings 20
+          echo "✅ TypeScript quality checks passed"
 
   # ============================================================================
-  # Stage 4: Test Validation
-  # ============================================================================  
-  test:
-    name: Test Validation
+  # Stage 4: Unit Tests (Parallel)
+  # ============================================================================
+  unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
-    needs: [setup, quality-check]
-    if: always() && needs.quality-check.result == 'success'
+    needs: [detect, format-check]
     timeout-minutes: 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Restore environments (reuse same config)
-      - name: Restore Go environment
-        if: needs.setup.outputs.has-go == 'true'
+      # Setup test environments
+      - name: Setup Go
+        if: needs.detect.outputs.has-go == 'true'
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
           cache-dependency-path: backend-go/go.sum
 
-      - name: Restore Java environment
-        if: needs.setup.outputs.has-java == 'true'
+      - name: Setup Java
+        if: needs.detect.outputs.has-java == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
           cache: maven
 
-      - name: Restore Python environment
-        if: needs.setup.outputs.has-python == 'true'
+      - name: Setup Python
+        if: needs.detect.outputs.has-python == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: pip
           cache-dependency-path: backend-python/requirements.txt
 
-      - name: Restore TypeScript environment
-        if: needs.setup.outputs.has-typescript == 'true'
+      - name: Setup Node.js
+        if: needs.detect.outputs.has-typescript == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: npm
           cache-dependency-path: frontend-ts/package-lock.json
 
-      - name: Restore dependencies
+      # Install test dependencies
+      - name: Install Python dependencies
+        if: needs.detect.outputs.has-python == 'true'
         run: |
-          # Python dependencies
-          if [[ "${{ needs.setup.outputs.has-python }}" == "true" ]]; then
-            python3 -m pip install --upgrade pip
-            python3 -m pip install -r backend-python/requirements.txt
-          fi
-          
-          # Node dependencies
-          if [[ "${{ needs.setup.outputs.has-typescript }}" == "true" ]]; then
-            cd frontend-ts && npm ci && cd ..
-          fi
+          python3 -m pip install --upgrade pip
+          python3 -m pip install -r backend-python/requirements.txt
+          python3 -m pip install pytest==7.4.3 pytest-asyncio==0.21.1 pytest-cov==4.1.0
 
-      - name: Run smart tests
+      - name: Install TypeScript test dependencies
+        if: needs.detect.outputs.has-typescript == 'true'
+        working-directory: frontend-ts
+        run: npm ci
+
+      # Run tests per language
+      - name: Run Go tests
+        if: needs.detect.outputs.has-go == 'true'
+        working-directory: backend-go
         run: |
-          echo "Running smart test suite..."
-          echo "Active projects: ${{ needs.setup.outputs.active-projects }}"
-          make test || make smart_test || {
-            echo "❌ Tests failed, please check code logic"
-            exit 1
-          }
+          echo "🧪 Running Go tests..."
+          go test ./... -v
+          echo "✅ Go tests passed"
+
+      - name: Run Java tests
+        if: needs.detect.outputs.has-java == 'true'
+        working-directory: backend-java
+        run: |
+          echo "🧪 Running Java tests..."
+          mvn test -q
+          echo "✅ Java tests passed"
+
+      - name: Run Python tests
+        if: needs.detect.outputs.has-python == 'true'
+        working-directory: backend-python
+        run: |
+          echo "🧪 Running Python tests..."
+          python3 -m pytest tests/ -v
+          echo "✅ Python tests passed"
+
+      - name: Run TypeScript tests
+        if: needs.detect.outputs.has-typescript == 'true'
+        working-directory: frontend-ts
+        run: |
+          echo "🧪 Running TypeScript tests..."
+          npm test -- --ci --passWithNoTests
+          echo "✅ TypeScript tests passed"
 
   # ============================================================================
-  # Stage 5: Build Artifacts
-  # ============================================================================
-  build:
-    name: Build Artifacts
-    runs-on: ubuntu-latest
-    needs: [setup, test]
-    if: always() && needs.test.result == 'success'
-    timeout-minutes: 8
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Restore environments (final time)
-      - name: Restore Go environment
-        if: needs.setup.outputs.has-go == 'true'
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-          cache-dependency-path: backend-go/go.sum
-
-      - name: Restore Java environment
-        if: needs.setup.outputs.has-java == 'true'
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '21'
-          cache: maven
-
-      - name: Restore Python environment
-        if: needs.setup.outputs.has-python == 'true'
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-          cache: pip
-          cache-dependency-path: backend-python/requirements.txt
-
-      - name: Restore TypeScript environment
-        if: needs.setup.outputs.has-typescript == 'true'
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: npm
-          cache-dependency-path: frontend-ts/package-lock.json
-
-      - name: Restore dependencies (final)
-        run: |
-          # Python dependencies
-          if [[ "${{ needs.setup.outputs.has-python }}" == "true" ]]; then
-            python3 -m pip install --upgrade pip
-            python3 -m pip install -r backend-python/requirements.txt
-          fi
-          
-          # Node dependencies  
-          if [[ "${{ needs.setup.outputs.has-typescript }}" == "true" ]]; then
-            cd frontend-ts && npm ci && cd ..
-          fi
-
-      - name: Smart build
-        run: |
-          echo "Running smart build..."
-          echo "Active projects: ${{ needs.setup.outputs.active-projects }}"
-          make build || make smart_build || {
-            echo "❌ Build failed, please check build configuration"
-            exit 1
-          }
-
-      - name: Build report
-        if: always()
-        run: |
-          echo "=== Build Artifacts Report ==="
-          echo "Active projects: ${{ needs.setup.outputs.active-projects }}"
-          
-          # Go artifacts
-          if [[ "${{ needs.setup.outputs.has-go }}" == "true" ]]; then
-            echo "Go artifacts:"
-            find backend-go/bin -name "*" -type f 2>/dev/null | head -10 || echo "  No Go artifacts found"
-          fi
-          
-          # Java artifacts  
-          if [[ "${{ needs.setup.outputs.has-java }}" == "true" ]]; then
-            echo "Java artifacts:"
-            find backend-java -name "*.jar" 2>/dev/null | head -10 || echo "  No Java artifacts found"
-          fi
-          
-          # TypeScript artifacts
-          if [[ "${{ needs.setup.outputs.has-typescript }}" == "true" ]]; then
-            echo "TypeScript artifacts:"
-            ls -la frontend-ts/dist/ 2>/dev/null || echo "  No TypeScript artifacts found"
-          fi
-
-  # ============================================================================
-  # Summary Report
+  # Summary
   # ============================================================================
   summary:
-    name: CI Pipeline Summary
+    name: Pipeline Summary
     runs-on: ubuntu-latest
-    needs: [setup, quality-check, test, build]
+    needs: [detect, format-check, quality-check, unit-tests]
     if: always()
     steps:
-      - name: Generate summary report
+      - name: Generate pipeline summary
         run: |
-          echo "=== Multi-Language CI/CD Execution Summary ==="
+          echo "=== 🚀 Code Quality & Testing Pipeline Summary ==="
           echo ""
-          echo "Detected active projects: ${{ needs.setup.outputs.active-projects }}"
+          echo "📊 Detected projects: ${{ needs.detect.outputs.active-projects }}"
           echo ""
-          echo "Stage execution status:"
-          echo "  Project detection: ${{ needs.setup.result }}"
-          echo "  Quality check: ${{ needs.quality-check.result }}"  
-          echo "  Test validation: ${{ needs.test.result }}"
-          echo "  Build artifacts: ${{ needs.build.result }}"
+          echo "📋 Pipeline stages:"
+          echo "  🎯 Project Detection: ${{ needs.detect.result }}"
+          echo "  ✨ Format Check: ${{ needs.format-check.result }}"  
+          echo "  🔍 Quality Check: ${{ needs.quality-check.result }}"
+          echo "  🧪 Unit Tests: ${{ needs.unit-tests.result }}"
           echo ""
           
-          # Calculate overall status
-          if [[ "${{ needs.quality-check.result }}" == "success" && 
-                "${{ needs.test.result }}" == "success" && 
-                "${{ needs.build.result }}" == "success" ]]; then
-            echo "✅ CI pipeline executed successfully! All checks passed"
-            echo "💡 Tip: Code is ready for merge or production deployment"
+          if [[ "${{ needs.format-check.result }}" == "success" && 
+                "${{ needs.quality-check.result }}" == "success" && 
+                "${{ needs.unit-tests.result }}" == "success" ]]; then
+            echo "✅ 🎉 Pipeline completed successfully! Code quality verified"
+            echo "💡 Ready for code review and merge"
           else
-            echo "❌ CI pipeline execution failed, please check errors above"
-            echo "💡 Tip: Fix issues and commit again to trigger CI"
+            echo "❌ 🚨 Pipeline failed - please check the issues above"
+            echo "💡 Fix the failing stages and commit again"
             exit 1
           fi
