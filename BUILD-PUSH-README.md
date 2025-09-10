@@ -1,23 +1,23 @@
 # 🐳 Build-Push Workflow 使用指南
 
-这个GitHub Actions workflow可以自动构建你的多语言项目的Docker镜像，并推送到Docker Hub和GitHub Container Registry。
+这个GitHub Actions workflow可以自动构建你的多语言项目的Docker镜像，并推送到GitHub Container Registry (GHCR)。
 
 ## 🎯 功能特性
 
 ### ✨ 智能特性
 - **🔍 智能项目检测**: 自动检测Go、Java、Python、TypeScript项目
 - **🏗️ 多架构构建**: 支持AMD64和ARM64架构
-- **📦 双注册表支持**: 同时推送到Docker Hub和GitHub Container Registry
+- **📦 GitHub集成**: 推送到GitHub Container Registry，无需额外配置
 - **⚡ 并行构建**: 4个服务同时构建，提升效率
 - **🎮 手动触发**: 支持手动触发构建和推送
 
 ### 🐳 构建的镜像
-| 服务 | Docker Hub | GitHub Container Registry |
-|------|------------|---------------------------|
-| **Go后端** | `scguoi/remote-ci-go` | `ghcr.io/scguoi/remote-ci-go` |
-| **Java后端** | `scguoi/remote-ci-java` | `ghcr.io/scguoi/remote-ci-java` |
-| **Python后端** | `scguoi/remote-ci-python` | `ghcr.io/scguoi/remote-ci-python` |
-| **前端** | `scguoi/remote-ci-frontend` | `ghcr.io/scguoi/remote-ci-frontend` |
+| 服务 | GitHub Container Registry |
+|------|---------------------------|
+| **Go后端** | `ghcr.io/scguoi/remote-ci-go` |
+| **Java后端** | `ghcr.io/scguoi/remote-ci-java` |
+| **Python后端** | `ghcr.io/scguoi/remote-ci-python` |
+| **前端** | `ghcr.io/scguoi/remote-ci-frontend` |
 
 ## 🚀 触发条件
 
@@ -45,28 +45,20 @@ git push origin feature/new-feature
 
 ## ⚙️ 配置要求
 
-### 1. Docker Hub 配置
-在GitHub仓库设置中添加以下Secrets：
+### ✅ 零配置启用！
+GitHub Container Registry (GHCR) 使用内置的 `GITHUB_TOKEN`，**无需任何额外配置**！
 
-```
-DOCKERHUB_USERNAME: 你的Docker Hub用户名
-DOCKERHUB_TOKEN: 你的Docker Hub访问令牌
-```
+推送后workflow会自动：
+- 检测你的项目
+- 构建Docker镜像 
+- 推送到 `ghcr.io/your-username/your-repo-name-service`
 
-**获取Docker Hub Token步骤**:
-1. 登录 [Docker Hub](https://hub.docker.com)
-2. Account Settings → Security → New Access Token
-3. 创建Token并复制到GitHub Secrets
+### 🔧 可选配置
 
-### 2. GitHub Container Registry
-无需额外配置，使用内置的`GITHUB_TOKEN`自动推送到GHCR。
-
-### 3. 更新镜像名称前缀
-在workflow文件中修改：
-```yaml
-env:
-  IMAGE_PREFIX: your-dockerhub-username/your-project-name
-```
+如果你想自定义镜像可见性：
+1. 进入仓库 → **Packages** 标签页
+2. 选择镜像 → **Package settings**
+3. 设置为Public（公开）或Private（私有）
 
 ## 🏷️ 镜像标签策略
 
@@ -102,22 +94,22 @@ env:
 version: '3.8'
 services:
   backend-go:
-    image: scguoi/remote-ci-go:latest
+    image: ghcr.io/scguoi/remote-ci-go:latest
     ports:
       - "8080:8080"
   
   backend-java:
-    image: scguoi/remote-ci-java:latest
+    image: ghcr.io/scguoi/remote-ci-java:latest
     ports:
       - "8081:8080"
       
   backend-python:
-    image: scguoi/remote-ci-python:latest
+    image: ghcr.io/scguoi/remote-ci-python:latest
     ports:
       - "8000:8000"
       
   frontend:
-    image: scguoi/remote-ci-frontend:latest
+    image: ghcr.io/scguoi/remote-ci-frontend:latest
     ports:
       - "80:80"
 ```
@@ -125,39 +117,36 @@ services:
 ### 单独运行
 ```bash
 # Go服务
-docker run -p 8080:8080 scguoi/remote-ci-go:latest
+docker run -p 8080:8080 ghcr.io/scguoi/remote-ci-go:latest
 
 # Java服务  
-docker run -p 8081:8080 scguoi/remote-ci-java:latest
+docker run -p 8081:8080 ghcr.io/scguoi/remote-ci-java:latest
 
 # Python服务
-docker run -p 8000:8000 scguoi/remote-ci-python:latest
+docker run -p 8000:8000 ghcr.io/scguoi/remote-ci-python:latest
 
 # 前端服务
-docker run -p 80:80 scguoi/remote-ci-frontend:latest
+docker run -p 80:80 ghcr.io/scguoi/remote-ci-frontend:latest
 ```
 
 ## 🐛 故障排除
 
 ### 常见问题
 
-**1. Docker Hub推送失败**
-```bash
-Error: denied: requested access to the resource is denied
-```
-- 检查`DOCKERHUB_USERNAME`和`DOCKERHUB_TOKEN`是否正确
-- 确认Docker Hub Token有推送权限
-
-**2. 项目未检测到**
+**1. 项目未检测到**
 ```bash
 ⚠️ No Docker projects detected
 ```
 - 确认项目目录包含`Dockerfile`
 - 检查项目结构是否符合预期
 
-**3. 构建超时**
+**2. 构建超时**
 - Java项目构建可能需要更长时间
 - 考虑调整timeout设置或优化Dockerfile
+
+**3. 权限问题**
+- GHCR推送使用内置`GITHUB_TOKEN`，无需额外配置
+- 如果遇到权限错误，检查仓库的Actions权限设置
 
 ### 调试方法
 
@@ -183,8 +172,8 @@ docker buildx build --platform linux/amd64,linux/arm64 backend-go/
 - 优化Dockerfile的层顺序
 
 ### 2. 安全优化
-- 定期轮换Docker Hub Token
-- 使用最小权限原则
+- GHCR使用GitHub内置权限管理，更安全
+- 支持私有镜像（私有仓库自动私有镜像）
 - 启用镜像签名验证
 
 ### 3. 性能优化
