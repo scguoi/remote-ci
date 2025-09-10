@@ -27,9 +27,7 @@ COPY --from=builder /app/nginx.conf /etc/nginx/conf.d/default.conf
 # Copy built application from builder stage
 COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Create non-root user for nginx
-RUN addgroup -g 1001 -S nginx && \
-    adduser -u 1001 -D -S -G nginx nginx
+# Use existing nginx user (nginx:alpine already has nginx user)
 
 # Set permissions
 RUN chown -R nginx:nginx /usr/share/nginx/html && \
