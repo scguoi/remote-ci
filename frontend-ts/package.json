@@ -8,8 +8,8 @@
     "dev": "vite",
     "build": "vite build",
     "start": "vite preview",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "npx jest",
+    "test:watch": "npx jest --watch",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,html,css}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,html,css}\"",
     "lint": "npx eslint \"src/**/*.{ts,tsx}\"",
@@ -22,6 +22,7 @@
     "typescript": "^5.0.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.33.0",
     "@types/jest": "^29.5.0",
     "@types/jsdom": "^21.1.0",
     "@types/node": "^20.0.0",
