@@ -4,11 +4,13 @@ FROM node:18-slim AS builder
 # Set working directory
 WORKDIR /app
 
-# Copy package files
+# Copy package files  
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci && npm cache clean --force
+# Remove package-lock.json and install fresh dependencies to fix rollup native deps
+RUN rm -f package-lock.json && \
+    npm install && \
+    npm cache clean --force
 
 # Copy source code
 COPY . .
