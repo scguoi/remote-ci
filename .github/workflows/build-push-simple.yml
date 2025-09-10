@@ -19,10 +19,10 @@ env:
 
 jobs:
   # ============================================================================
-  # Simple Go Service Build - For Testing
+  # Simple TypeScript Frontend Build - For Testing
   # ============================================================================
-  build-go-test:
-    name: 🐹 Test Go Service Build
+  build-ts-test:
+    name: 🟦 Test TypeScript Frontend Build
     runs-on: ubuntu-latest
     if: contains(github.event.head_commit.message, 'test-build') || github.event_name == 'workflow_dispatch'
     steps:
@@ -47,15 +47,15 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}-go
+            ${{ env.REGISTRY_GHCR }}/${{ github.repository }}-frontend
           tags: |
             type=ref,event=branch
             type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Build and push Go image
+      - name: Build and push TypeScript image
         uses: docker/build-push-action@v5
         with:
-          context: backend-go
+          context: frontend-ts
           platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -69,6 +69,6 @@ jobs:
 
       - name: Test result
         run: |
-          echo "🎉 Go Docker image built and pushed successfully!"
-          echo "📦 Image: ${{ env.REGISTRY_GHCR }}/${{ github.repository }}-go:latest"
-          echo "🔍 You can now pull and test: docker pull ${{ env.REGISTRY_GHCR }}/${{ github.repository }}-go:latest"
+          echo "🎉 TypeScript Docker image built and pushed successfully!"
+          echo "📦 Image: ${{ env.REGISTRY_GHCR }}/${{ github.repository }}-frontend:latest"
+          echo "🔍 You can now pull and test: docker pull ${{ env.REGISTRY_GHCR }}/${{ github.repository }}-frontend:latest"

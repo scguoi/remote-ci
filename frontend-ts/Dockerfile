@@ -1,8 +1,5 @@
 # Multi-stage build for TypeScript frontend application
-FROM node:18-alpine AS builder
-
-# Install build dependencies for Alpine
-RUN apk add --no-cache python3 make g++
+FROM node:18-slim AS builder
 
 # Set working directory
 WORKDIR /app
@@ -10,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with legacy peer deps for Alpine compatibility
-RUN npm install --legacy-peer-deps && npm cache clean --force
+# Install dependencies
+RUN npm ci && npm cache clean --force
 
 # Copy source code
 COPY . .
