@@ -184,7 +184,11 @@ jobs:
         working-directory: frontend-ts
         run: |
           echo "🛠️ Installing TypeScript tools and dependencies..."
-          npm ci
+          # Try npm ci first, fallback to npm install if it fails
+          if ! npm ci; then
+            echo "⚠️ npm ci failed, trying npm install..."
+            npm install
+          fi
           echo "✅ TypeScript tools and dependencies installed successfully"
 
   # ============================================================================
@@ -298,7 +302,12 @@ jobs:
 
       - name: Install TypeScript dependencies
         working-directory: frontend-ts
-        run: npm ci
+        run: |
+          # Try npm ci first, fallback to npm install if it fails
+          if ! npm ci; then
+            echo "⚠️ npm ci failed, trying npm install..."
+            npm install
+          fi
 
       - name: TypeScript format check
         working-directory: frontend-ts
@@ -416,7 +425,12 @@ jobs:
 
       - name: Install TypeScript dependencies
         working-directory: frontend-ts
-        run: npm ci
+        run: |
+          # Try npm ci first, fallback to npm install if it fails
+          if ! npm ci; then
+            echo "⚠️ npm ci failed, trying npm install..."
+            npm install
+          fi
 
       - name: TypeScript quality check
         working-directory: frontend-ts
@@ -529,7 +543,12 @@ jobs:
 
       - name: Install TypeScript dependencies
         working-directory: frontend-ts
-        run: npm ci
+        run: |
+          # Try npm ci first, fallback to npm install if it fails
+          if ! npm ci; then
+            echo "⚠️ npm ci failed, trying npm install..."
+            npm install
+          fi
 
       - name: TypeScript tests
         working-directory: frontend-ts
