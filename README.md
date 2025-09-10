@@ -118,6 +118,10 @@ remote-ci/
 ├── ☕ backend-java/                # Java后端 (Spring Boot + Maven多模块)
 ├── 🐍 backend-python/              # Python API (FastAPI + SQLAlchemy)
 ├── 📘 frontend-ts/                 # TypeScript前端 (Vite + ESLint)
+├── 🐳 docker/                      # Docker容器化部署
+│   ├── docker-compose.yml        # 服务编排文件
+│   ├── docker-dev.sh             # 容器管理脚本
+│   └── DOCKER.md                 # 部署指南
 ├── 🧪 makefile-tests/
 │   ├── test_makefile.sh          # 全面测试脚本
 │   └── quick_test.sh             # 快速测试脚本
@@ -165,6 +169,26 @@ make check-tools-go # 检查特定语言工具状态
 | **使用复杂度** | `make fmt-go fmt-java fmt-python fmt-typescript` | `make format` | ⬇️ 75% |
 | **认知负担** | 重 (每种语言不同命令) | 轻 (统一智能命令) | ⬇️ 80% |
 | **上手时间** | 1-2小时 | 5分钟 | ⬇️ 95% |
+
+## 🐳 Docker容器化部署
+
+### 快速启动
+```bash
+# 进入Docker目录
+cd docker
+
+# 一键启动所有服务
+./docker-dev.sh start
+```
+
+### 访问服务
+- **前端**: http://localhost
+- **Go后端**: http://localhost:8080  
+- **Java后端**: http://localhost:8081
+- **Python后端**: http://localhost:8000
+
+### 完整部署文档
+详细部署指南请参考：[docker/DOCKER.md](./docker/DOCKER.md)
 
 ## 🧪 质量保证
 

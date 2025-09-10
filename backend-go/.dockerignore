@@ -1,0 +1,44 @@
+# Git files
+.git
+.gitignore
+
+# Documentation
+README.md
+*.md
+
+# Test files
+*_test.go
+testdata/
+
+# Build artifacts
+main
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Dependencies
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.example
+
+# Logs
+*.log
+
+# Coverage files
+coverage.out
+coverage.html

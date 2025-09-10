@@ -1,0 +1,131 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: remote-ci-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: user_db
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ../scripts/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - remote-ci-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 10s
+      retries: 5
+
+  # Go Backend Service
+  backend-go:
+    build:
+      context: ../backend-go
+      dockerfile: Dockerfile
+    container_name: remote-ci-go
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=user_db
+      - DB_USER=app_user
+      - DB_PASSWORD=app_password
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - remote-ci-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Java Backend Service  
+  backend-java:
+    build:
+      context: ../backend-java
+      dockerfile: Dockerfile
+    container_name: remote-ci-java
+    restart: unless-stopped
+    ports:
+      - "8081:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/user_db?useSSL=false&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=app_user
+      - SPRING_DATASOURCE_PASSWORD=app_password
+      - JAVA_OPTS=-Xmx512m -Xms256m -XX:+UseG1GC -XX:+UseContainerSupport -XX:MaxDirectMemorySize=128m -XX:+EnableJVMCIProduct
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - remote-ci-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Python Backend Service
+  backend-python:
+    build:
+      context: ../backend-python
+      dockerfile: Dockerfile
+    container_name: remote-ci-python
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=mysql://app_user:app_password@mysql:3306/user_db
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - remote-ci-network
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # TypeScript Frontend Service
+  frontend-ts:
+    build:
+      context: ../frontend-ts
+      dockerfile: Dockerfile
+    container_name: remote-ci-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    environment:
+      - API_GO_URL=http://localhost:8080
+      - API_JAVA_URL=http://localhost:8081
+      - API_PYTHON_URL=http://localhost:8000
+    depends_on:
+      - backend-go
+      - backend-java
+      - backend-python
+    networks:
+      - remote-ci-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mysql_data:
+    driver: local
+
+networks:
+  remote-ci-network:
+    driver: bridge
