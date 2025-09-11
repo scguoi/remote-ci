@@ -132,94 +132,86 @@ jobs:
             COMMIT_RANGE="$PREVIOUS_TAG..HEAD"
           fi
           
-          # 生成变更日志
-          CHANGELOG=$(cat << 'EOF'
-          ## 🚀 主要变更
+          # 创建临时文件来构建changelog
+          CHANGELOG_FILE="/tmp/changelog.md"
           
-          EOF
-          )
+          # 写入标题
+          cat > "$CHANGELOG_FILE" << 'HEADER_EOF'
+## 🚀 主要变更
+
+HEADER_EOF
           
-          # 获取提交记录并分类
-          FEATURES=""
-          FIXES=""
-          OTHERS=""
+          # 获取并分类提交
+          echo "### ✨ 新功能" >> "$CHANGELOG_FILE"
+          git log --pretty=format:"%s" $COMMIT_RANGE | grep "^feat" | sed 's/^feat[^:]*: /- /' >> "$CHANGELOG_FILE" || echo "- 暂无新功能" >> "$CHANGELOG_FILE"
           
-          while IFS= read -r commit; do
-            if [[ "$commit" =~ ^feat(\([^)]*\))?: ]]; then
-              FEATURES="${FEATURES}- ${commit#*: }\n"
-            elif [[ "$commit" =~ ^fix(\([^)]*\))?: ]]; then
-              FIXES="${FIXES}- ${commit#*: }\n"
-            elif [[ "$commit" =~ ^(chore|docs|refactor|test|ci)(\([^)]*\))?: ]]; then
-              OTHERS="${OTHERS}- ${commit#*: }\n"
-            else
-              OTHERS="${OTHERS}- $commit\n"
-            fi
-          done < <(git log --pretty=format:"%s" $COMMIT_RANGE)
+          echo "" >> "$CHANGELOG_FILE"
+          echo "### 🐛 问题修复" >> "$CHANGELOG_FILE"
+          git log --pretty=format:"%s" $COMMIT_RANGE | grep "^fix" | sed 's/^fix[^:]*: /- /' >> "$CHANGELOG_FILE" || echo "- 暂无问题修复" >> "$CHANGELOG_FILE"
           
-          # 构建最终的changelog
-          if [[ -n "$FEATURES" ]]; then
-            CHANGELOG="${CHANGELOG}\n### ✨ 新功能\n$FEATURES"
-          fi
-          
-          if [[ -n "$FIXES" ]]; then
-            CHANGELOG="${CHANGELOG}\n### 🐛 问题修复\n$FIXES"
-          fi
-          
-          if [[ -n "$OTHERS" ]]; then
-            CHANGELOG="${CHANGELOG}\n### 🔧 其他改进\n$OTHERS"
-          fi
+          echo "" >> "$CHANGELOG_FILE"
+          echo "### 🔧 其他改进" >> "$CHANGELOG_FILE"
+          git log --pretty=format:"%s" $COMMIT_RANGE | grep -E "^(chore|docs|refactor|test|ci)" | sed 's/^[^:]*: /- /' >> "$CHANGELOG_FILE" || echo "- 暂无其他改进" >> "$CHANGELOG_FILE"
           
           # 添加Docker镜像信息
-          CHANGELOG="${CHANGELOG}\n\n## 📦 Docker镜像\n\n"
+          echo "" >> "$CHANGELOG_FILE"
+          echo "## 📦 Docker镜像" >> "$CHANGELOG_FILE"
+          echo "" >> "$CHANGELOG_FILE"
+          
           if [[ "${{ steps.detect.outputs.has-go }}" == "true" ]]; then
-            CHANGELOG="${CHANGELOG}- 🐹 Go服务: \`ghcr.io/${{ github.repository }}-go:$CURRENT_TAG\`\n"
+            echo "- 🐹 Go服务: \`ghcr.io/${{ github.repository }}-go:$CURRENT_TAG\`" >> "$CHANGELOG_FILE"
           fi
           if [[ "${{ steps.detect.outputs.has-java }}" == "true" ]]; then
-            CHANGELOG="${CHANGELOG}- ☕ Java服务: \`ghcr.io/${{ github.repository }}-java:$CURRENT_TAG\`\n"
+            echo "- ☕ Java服务: \`ghcr.io/${{ github.repository }}-java:$CURRENT_TAG\`" >> "$CHANGELOG_FILE"
           fi
           if [[ "${{ steps.detect.outputs.has-python }}" == "true" ]]; then
-            CHANGELOG="${CHANGELOG}- 🐍 Python服务: \`ghcr.io/${{ github.repository }}-python:$CURRENT_TAG\`\n"
+            echo "- 🐍 Python服务: \`ghcr.io/${{ github.repository }}-python:$CURRENT_TAG\`" >> "$CHANGELOG_FILE"
           fi
           if [[ "${{ steps.detect.outputs.has-typescript }}" == "true" ]]; then
-            CHANGELOG="${CHANGELOG}- 🟦 TypeScript前端: \`ghcr.io/${{ github.repository }}-frontend:$CURRENT_TAG\`\n"
+            echo "- 🟦 TypeScript前端: \`ghcr.io/${{ github.repository }}-frontend:$CURRENT_TAG\`" >> "$CHANGELOG_FILE"
           fi
           
           # 添加使用说明
-          CHANGELOG="${CHANGELOG}\n## 📋 使用说明\n\n"
-          CHANGELOG="${CHANGELOG}### 快速开始\n"
-          CHANGELOG="${CHANGELOG}\`\`\`bash\n"
-          CHANGELOG="${CHANGELOG}git clone https://github.com/${{ github.repository }}.git\n"
-          CHANGELOG="${CHANGELOG}cd $(basename ${{ github.repository }})\n"
-          CHANGELOG="${CHANGELOG}git checkout $CURRENT_TAG\n"
-          CHANGELOG="${CHANGELOG}make setup  # 初始化环境\n"
-          CHANGELOG="${CHANGELOG}make ci     # 完整CI流程\n"
-          CHANGELOG="${CHANGELOG}\`\`\`\n\n"
+          cat >> "$CHANGELOG_FILE" << 'USAGE_EOF'
+
+## 📋 使用说明
+
+### 快速开始
+```bash
+git clone https://github.com/${{ github.repository }}.git
+cd remote-ci
+git checkout $CURRENT_TAG
+make setup  # 初始化环境
+make ci     # 完整CI流程
+```
+
+### Docker部署
+```bash
+USAGE_EOF
           
-          CHANGELOG="${CHANGELOG}### Docker部署\n"
-          CHANGELOG="${CHANGELOG}\`\`\`bash\n"
           if [[ "${{ steps.detect.outputs.has-go }}" == "true" ]]; then
-            CHANGELOG="${CHANGELOG}docker pull ghcr.io/${{ github.repository }}-go:$CURRENT_TAG\n"
+            echo "docker pull ghcr.io/${{ github.repository }}-go:$CURRENT_TAG" >> "$CHANGELOG_FILE"
           fi
           if [[ "${{ steps.detect.outputs.has-java }}" == "true" ]]; then
-            CHANGELOG="${CHANGELOG}docker pull ghcr.io/${{ github.repository }}-java:$CURRENT_TAG\n"
+            echo "docker pull ghcr.io/${{ github.repository }}-java:$CURRENT_TAG" >> "$CHANGELOG_FILE"
           fi
           if [[ "${{ steps.detect.outputs.has-python }}" == "true" ]]; then
-            CHANGELOG="${CHANGELOG}docker pull ghcr.io/${{ github.repository }}-python:$CURRENT_TAG\n"
+            echo "docker pull ghcr.io/${{ github.repository }}-python:$CURRENT_TAG" >> "$CHANGELOG_FILE"
           fi
           if [[ "${{ steps.detect.outputs.has-typescript }}" == "true" ]]; then
-            CHANGELOG="${CHANGELOG}docker pull ghcr.io/${{ github.repository }}-frontend:$CURRENT_TAG\n"
+            echo "docker pull ghcr.io/${{ github.repository }}-frontend:$CURRENT_TAG" >> "$CHANGELOG_FILE"
           fi
-          CHANGELOG="${CHANGELOG}\`\`\`"
           
-          # 保存到输出文件
-          echo -e "$CHANGELOG" > /tmp/changelog.md
+          echo '```' >> "$CHANGELOG_FILE"
           
-          # 输出到GitHub Output (需要转义)
+          # 输出到GitHub Output
           {
             echo "changelog<<EOF"
-            echo -e "$CHANGELOG"
+            cat "$CHANGELOG_FILE"
             echo "EOF"
           } >> $GITHUB_OUTPUT
+          
+          echo "📄 变更日志已生成"
 
   # ============================================================================
   # Stage 2: 构建Docker镜像 (复用build-push的逻辑)
