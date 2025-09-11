@@ -12,7 +12,7 @@ on:
       push_images:
         description: 'Push images to registry'
         required: false
-        default: 'true'
+        default: true
         type: boolean
 
 concurrency:
