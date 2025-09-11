@@ -172,22 +172,22 @@ HEADER_EOF
           fi
           
           # 添加使用说明
-          cat >> "$CHANGELOG_FILE" << 'USAGE_EOF'
+          cat >> "$CHANGELOG_FILE" << EOF
 
 ## 📋 使用说明
 
 ### 快速开始
-```bash
+\`\`\`bash
 git clone https://github.com/${{ github.repository }}.git
 cd remote-ci
 git checkout $CURRENT_TAG
 make setup  # 初始化环境
 make ci     # 完整CI流程
-```
+\`\`\`
 
 ### Docker部署
-```bash
-USAGE_EOF
+\`\`\`bash
+EOF
           
           if [[ "${{ steps.detect.outputs.has-go }}" == "true" ]]; then
             echo "docker pull ghcr.io/${{ github.repository }}-go:$CURRENT_TAG" >> "$CHANGELOG_FILE"
@@ -202,7 +202,7 @@ USAGE_EOF
             echo "docker pull ghcr.io/${{ github.repository }}-frontend:$CURRENT_TAG" >> "$CHANGELOG_FILE"
           fi
           
-          echo '```' >> "$CHANGELOG_FILE"
+          echo '\`\`\`' >> "$CHANGELOG_FILE"
           
           # 输出到GitHub Output
           {
