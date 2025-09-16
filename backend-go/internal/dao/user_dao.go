@@ -10,8 +10,8 @@ import (
 	"github.com/scguoi/remote-ci/backend-go/internal/common"
 )
 
-// UserDAO 用户数据访问对象
-// 对应Java项目的UserMapper
+// UserDAO user data access object interface
+// Corresponds to UserMapper in the Java project
 type UserDAO interface {
 	Create(ctx context.Context, user *common.User) error
 	GetByID(ctx context.Context, id int64) (*common.User, error)
@@ -24,17 +24,17 @@ type UserDAO interface {
 	ExistsByEmail(ctx context.Context, email string, excludeID *int64) (bool, error)
 }
 
-// userDAOImpl UserDAO的实现
+// userDAOImpl implementation of UserDAO interface
 type userDAOImpl struct {
 	db *sqlx.DB
 }
 
-// NewUserDAO 创建UserDAO实例
+// NewUserDAO creates a new UserDAO instance
 func NewUserDAO(db *sqlx.DB) UserDAO {
 	return &userDAOImpl{db: db}
 }
 
-// Create 创建用户
+// Create inserts a new user into the database
 func (d *userDAOImpl) Create(ctx context.Context, user *common.User) error {
 	query := `
 		INSERT INTO users (
@@ -61,7 +61,7 @@ func (d *userDAOImpl) Create(ctx context.Context, user *common.User) error {
 	return nil
 }
 
-// GetByID 根据ID获取用户
+// GetByID retrieves a user by ID
 func (d *userDAOImpl) GetByID(ctx context.Context, id int64) (*common.User, error) {
 	query := `
 		SELECT id, username, email, full_name, password_hash, phone_number,
@@ -82,7 +82,7 @@ func (d *userDAOImpl) GetByID(ctx context.Context, id int64) (*common.User, erro
 	return user, nil
 }
 
-// GetByUsername 根据用户名获取用户
+// GetByUsername retrieves a user by username
 func (d *userDAOImpl) GetByUsername(ctx context.Context, username string) (*common.User, error) {
 	query := `
 		SELECT id, username, email, full_name, password_hash, phone_number,
@@ -103,7 +103,7 @@ func (d *userDAOImpl) GetByUsername(ctx context.Context, username string) (*comm
 	return user, nil
 }
 
-// GetByEmail 根据邮箱获取用户
+// GetByEmail retrieves a user by email
 func (d *userDAOImpl) GetByEmail(ctx context.Context, email string) (*common.User, error) {
 	query := `
 		SELECT id, username, email, full_name, password_hash, phone_number,
@@ -124,7 +124,7 @@ func (d *userDAOImpl) GetByEmail(ctx context.Context, email string) (*common.Use
 	return user, nil
 }
 
-// Update 更新用户（支持乐观锁）
+// Update updates a user with optimistic locking support
 func (d *userDAOImpl) Update(ctx context.Context, user *common.User) error {
 	query := `
 		UPDATE users 
@@ -144,7 +144,7 @@ func (d *userDAOImpl) Update(ctx context.Context, user *common.User) error {
 	}
 
 	if rowsAffected == 0 {
-		// 检查用户是否存在
+		// Check if user exists
 		_, err := d.GetByID(ctx, user.ID)
 		if err != nil {
 			if common.IsUserNotFound(err) {
@@ -152,7 +152,7 @@ func (d *userDAOImpl) Update(ctx context.Context, user *common.User) error {
 			}
 			return common.NewDatabaseError("Failed to verify user existence", err)
 		}
-		// 用户存在但版本不匹配，说明发生了乐观锁冲突
+		// User exists but version mismatch, indicates optimistic lock conflict
 		return common.NewVersionMismatchError()
 	}
 
@@ -160,7 +160,7 @@ func (d *userDAOImpl) Update(ctx context.Context, user *common.User) error {
 	return nil
 }
 
-// Delete 删除用户（软删除：设置为非活跃状态）
+// Delete soft deletes a user by setting is_active to false
 func (d *userDAOImpl) Delete(ctx context.Context, id int64, version int) error {
 	query := `
 		UPDATE users 
@@ -179,7 +179,7 @@ func (d *userDAOImpl) Delete(ctx context.Context, id int64, version int) error {
 	}
 
 	if rowsAffected == 0 {
-		// 检查用户是否存在
+		// Check if user exists
 		_, err := d.GetByID(ctx, id)
 		if err != nil {
 			if common.IsUserNotFound(err) {
@@ -187,16 +187,16 @@ func (d *userDAOImpl) Delete(ctx context.Context, id int64, version int) error {
 			}
 			return common.NewDatabaseError("Failed to verify user existence", err)
 		}
-		// 用户存在但版本不匹配
+		// User exists but version mismatch
 		return common.NewVersionMismatchError()
 	}
 
 	return nil
 }
 
-// List 分页获取用户列表
+// List retrieves a paginated list of users with optional filters
 func (d *userDAOImpl) List(ctx context.Context, filter *common.UserFilter) ([]*common.User, int64, error) {
-	// 构建查询条件
+	// Build query conditions
 	conditions := []string{}
 	args := []interface{}{}
 	countArgs := []interface{}{}
@@ -226,7 +226,7 @@ func (d *userDAOImpl) List(ctx context.Context, filter *common.UserFilter) ([]*c
 		whereClause = "WHERE " + strings.Join(conditions, " AND ")
 	}
 
-	// 获取总数
+	// Get total count
 	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM users %s", whereClause)
 	var total int64
 	err := d.db.GetContext(ctx, &total, countQuery, countArgs...)
@@ -234,7 +234,7 @@ func (d *userDAOImpl) List(ctx context.Context, filter *common.UserFilter) ([]*c
 		return nil, 0, common.NewDatabaseError("Failed to count users", err)
 	}
 
-	// 获取分页数据
+	// Get paginated data
 	offset := filter.Page * filter.Size
 	dataQuery := fmt.Sprintf(`
 		SELECT id, username, email, full_name, password_hash, phone_number,
@@ -255,7 +255,7 @@ func (d *userDAOImpl) List(ctx context.Context, filter *common.UserFilter) ([]*c
 	return users, total, nil
 }
 
-// ExistsByUsername 检查用户名是否存在
+// ExistsByUsername checks if a username exists (optionally excluding a specific ID)
 func (d *userDAOImpl) ExistsByUsername(ctx context.Context, username string, excludeID *int64) (bool, error) {
 	query := "SELECT COUNT(*) FROM users WHERE username = ?"
 	args := []interface{}{username}
@@ -274,7 +274,7 @@ func (d *userDAOImpl) ExistsByUsername(ctx context.Context, username string, exc
 	return count > 0, nil
 }
 
-// ExistsByEmail 检查邮箱是否存在
+// ExistsByEmail checks if an email exists (optionally excluding a specific ID)
 func (d *userDAOImpl) ExistsByEmail(ctx context.Context, email string, excludeID *int64) (bool, error) {
 	query := "SELECT COUNT(*) FROM users WHERE email = ?"
 	args := []interface{}{email}

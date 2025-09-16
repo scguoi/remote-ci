@@ -5,18 +5,18 @@ import (
 	"net/http"
 )
 
-// ErrorCode 错误代码
-// 对应Java项目的ErrorCodes常量类
+// ErrorCode represents application error codes
+// Corresponds to ErrorCodes constants class in the Java project
 type ErrorCode string
 
 const (
-	// 系统错误
+	// System errors
 	ErrCodeInternal     ErrorCode = "INTERNAL_ERROR"
 	ErrCodeValidation   ErrorCode = "VALIDATION_ERROR"
 	ErrCodeUnauthorized ErrorCode = "UNAUTHORIZED"
 	ErrCodeForbidden    ErrorCode = "FORBIDDEN"
 
-	// 用户相关错误
+	// User-related errors
 	ErrCodeUserNotFound       ErrorCode = "USER_NOT_FOUND"
 	ErrCodeUserExists         ErrorCode = "USER_ALREADY_EXISTS"
 	ErrCodeUsernameExists     ErrorCode = "USERNAME_ALREADY_EXISTS"
@@ -25,12 +25,12 @@ const (
 	ErrCodeVersionMismatch    ErrorCode = "VERSION_MISMATCH"
 	ErrCodeInvalidCredentials ErrorCode = "INVALID_CREDENTIALS"
 
-	// 数据库错误
+	// Database errors
 	ErrCodeDatabaseConnection ErrorCode = "DATABASE_CONNECTION_ERROR"
 	ErrCodeDatabaseQuery      ErrorCode = "DATABASE_QUERY_ERROR"
 )
 
-// AppError 应用错误
+// AppError represents an application error with code and HTTP status
 type AppError struct {
 	Code       ErrorCode `json:"code"`
 	Message    string    `json:"message"`
@@ -38,7 +38,7 @@ type AppError struct {
 	Cause      error     `json:"-"`
 }
 
-// Error 实现error接口
+// Error implements the error interface
 func (e *AppError) Error() string {
 	if e.Cause != nil {
 		return fmt.Sprintf("%s: %s (caused by: %v)", e.Code, e.Message, e.Cause)
@@ -46,12 +46,12 @@ func (e *AppError) Error() string {
 	return fmt.Sprintf("%s: %s", e.Code, e.Message)
 }
 
-// Unwrap 支持错误链
+// Unwrap supports error chaining
 func (e *AppError) Unwrap() error {
 	return e.Cause
 }
 
-// NewAppError 创建应用错误
+// NewAppError creates a new application error
 func NewAppError(code ErrorCode, message string, httpStatus int, cause error) *AppError {
 	return &AppError{
 		Code:       code,
@@ -61,9 +61,9 @@ func NewAppError(code ErrorCode, message string, httpStatus int, cause error) *A
 	}
 }
 
-// 预定义错误工厂函数
+// Predefined error factory functions
 
-// NewUserNotFoundError 用户不存在错误
+// NewUserNotFoundError creates a user not found error
 func NewUserNotFoundError(identifier string) *AppError {
 	return NewAppError(
 		ErrCodeUserNotFound,
@@ -73,7 +73,7 @@ func NewUserNotFoundError(identifier string) *AppError {
 	)
 }
 
-// NewUserExistsError 用户已存在错误
+// NewUserExistsError creates a user already exists error
 func NewUserExistsError(field, value string) *AppError {
 	return NewAppError(
 		ErrCodeUserExists,
@@ -83,7 +83,7 @@ func NewUserExistsError(field, value string) *AppError {
 	)
 }
 
-// NewUsernameExistsError 用户名已存在错误
+// NewUsernameExistsError creates a username already exists error
 func NewUsernameExistsError(username string) *AppError {
 	return NewAppError(
 		ErrCodeUsernameExists,
@@ -93,7 +93,7 @@ func NewUsernameExistsError(username string) *AppError {
 	)
 }
 
-// NewEmailExistsError 邮箱已存在错误
+// NewEmailExistsError creates an email already exists error
 func NewEmailExistsError(email string) *AppError {
 	return NewAppError(
 		ErrCodeEmailExists,
@@ -103,7 +103,7 @@ func NewEmailExistsError(email string) *AppError {
 	)
 }
 
-// NewVersionMismatchError 版本不匹配错误（乐观锁）
+// NewVersionMismatchError creates a version mismatch error (optimistic locking)
 func NewVersionMismatchError() *AppError {
 	return NewAppError(
 		ErrCodeVersionMismatch,
@@ -113,7 +113,7 @@ func NewVersionMismatchError() *AppError {
 	)
 }
 
-// NewValidationError 验证错误
+// NewValidationError creates a validation error
 func NewValidationError(message string, cause error) *AppError {
 	return NewAppError(
 		ErrCodeValidation,
@@ -123,7 +123,7 @@ func NewValidationError(message string, cause error) *AppError {
 	)
 }
 
-// NewInternalError 内部服务器错误
+// NewInternalError creates an internal server error
 func NewInternalError(message string, cause error) *AppError {
 	return NewAppError(
 		ErrCodeInternal,
@@ -133,7 +133,7 @@ func NewInternalError(message string, cause error) *AppError {
 	)
 }
 
-// NewDatabaseError 数据库错误
+// NewDatabaseError creates a database error
 func NewDatabaseError(message string, cause error) *AppError {
 	return NewAppError(
 		ErrCodeDatabaseQuery,
@@ -143,7 +143,7 @@ func NewDatabaseError(message string, cause error) *AppError {
 	)
 }
 
-// IsUserNotFound 检查是否为用户不存在错误
+// IsUserNotFound checks if error is a user not found error
 func IsUserNotFound(err error) bool {
 	if appErr, ok := err.(*AppError); ok {
 		return appErr.Code == ErrCodeUserNotFound
@@ -151,7 +151,7 @@ func IsUserNotFound(err error) bool {
 	return false
 }
 
-// IsUserExists 检查是否为用户已存在错误
+// IsUserExists checks if error is a user already exists error
 func IsUserExists(err error) bool {
 	if appErr, ok := err.(*AppError); ok {
 		return appErr.Code == ErrCodeUserExists ||
@@ -161,7 +161,7 @@ func IsUserExists(err error) bool {
 	return false
 }
 
-// IsVersionMismatch 检查是否为版本不匹配错误
+// IsVersionMismatch checks if error is a version mismatch error
 func IsVersionMismatch(err error) bool {
 	if appErr, ok := err.(*AppError); ok {
 		return appErr.Code == ErrCodeVersionMismatch

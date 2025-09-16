@@ -6,24 +6,24 @@ import (
 )
 
 // User represents a user in the system
-// 对应Java项目的User实体类
+// Corresponds to User entity class in the Java project
 type User struct {
 	ID           int64     `json:"id"                     db:"id"`
 	Username     string    `json:"username"               db:"username"      validate:"required,min=3,max=50"`
 	Email        string    `json:"email"                  db:"email"         validate:"required,email"`
 	FullName     string    `json:"full_name"              db:"full_name"     validate:"required,min=1,max=100"`
-	PasswordHash string    `json:"-"                      db:"password_hash"` // 不在JSON中暴露
+	PasswordHash string    `json:"-"                      db:"password_hash"` // Not exposed in JSON
 	PhoneNumber  *string   `json:"phone_number,omitempty" db:"phone_number"`
 	IsActive     bool      `json:"is_active"              db:"is_active"`
 	CreatedAt    time.Time `json:"created_at"             db:"created_at"`
 	UpdatedAt    time.Time `json:"updated_at"             db:"updated_at"`
 	CreatedBy    *string   `json:"created_by,omitempty"   db:"created_by"`
 	UpdatedBy    *string   `json:"updated_by,omitempty"   db:"updated_by"`
-	Version      int       `json:"version"                db:"version"` // 乐观锁版本号
+	Version      int       `json:"version"                db:"version"` // Optimistic locking version number
 }
 
-// CreateUserRequest 创建用户请求
-// 对应Java项目的CreateUserRequest DTO
+// CreateUserRequest represents a request to create a new user
+// Corresponds to CreateUserRequest DTO in the Java project
 type CreateUserRequest struct {
 	Username    string  `json:"username"               validate:"required,min=3,max=50"`
 	Email       string  `json:"email"                  validate:"required,email"`
@@ -32,18 +32,18 @@ type CreateUserRequest struct {
 	PhoneNumber *string `json:"phone_number,omitempty" validate:"omitempty,min=10,max=20"`
 }
 
-// UpdateUserRequest 更新用户请求
-// 对应Java项目的UpdateUserRequest DTO
+// UpdateUserRequest represents a request to update an existing user
+// Corresponds to UpdateUserRequest DTO in the Java project
 type UpdateUserRequest struct {
 	Email       *string `json:"email,omitempty"        validate:"omitempty,email"`
 	FullName    *string `json:"full_name,omitempty"    validate:"omitempty,min=1,max=100"`
 	PhoneNumber *string `json:"phone_number,omitempty" validate:"omitempty,min=10,max=20"`
 	IsActive    *bool   `json:"is_active,omitempty"`
-	Version     int     `json:"version"                validate:"required"` // 乐观锁必需
+	Version     int     `json:"version"                validate:"required"` // Required for optimistic locking
 }
 
-// UserResponse 用户响应
-// 对应Java项目的UserResponse DTO
+// UserResponse represents a user response data structure
+// Corresponds to UserResponse DTO in the Java project
 type UserResponse struct {
 	ID          int64     `json:"id"`
 	Username    string    `json:"username"`
@@ -58,8 +58,8 @@ type UserResponse struct {
 	Version     int       `json:"version"`
 }
 
-// ApiResponse 统一API响应格式
-// 对应Java项目的ApiResponse
+// ApiResponse represents a unified API response format
+// Corresponds to ApiResponse in the Java project
 type ApiResponse[T any] struct {
 	Success   bool   `json:"success"`
 	Message   string `json:"message"`
@@ -68,7 +68,7 @@ type ApiResponse[T any] struct {
 	Timestamp string `json:"timestamp"`
 }
 
-// PagedResponse 分页响应
+// PagedResponse represents a paginated response structure
 type PagedResponse[T any] struct {
 	Content       []T   `json:"content"`
 	Page          int   `json:"page"`
@@ -79,7 +79,7 @@ type PagedResponse[T any] struct {
 	Last          bool  `json:"last"`
 }
 
-// UserFilter 用户查询过滤条件
+// UserFilter represents filtering criteria for user queries
 type UserFilter struct {
 	Username *string `json:"username,omitempty"  form:"username"`
 	Email    *string `json:"email,omitempty"     form:"email"`
@@ -88,12 +88,12 @@ type UserFilter struct {
 	Size     int     `json:"size"                form:"size"      validate:"min=1,max=100"`
 }
 
-// Value 实现 driver.Valuer 接口，用于数据库存储
+// Value implements driver.Valuer interface for database storage
 func (u User) Value() (driver.Value, error) {
 	return u.ID, nil
 }
 
-// ToResponse 将User转换为UserResponse
+// ToResponse converts User to UserResponse
 func (u *User) ToResponse() *UserResponse {
 	return &UserResponse{
 		ID:          u.ID,

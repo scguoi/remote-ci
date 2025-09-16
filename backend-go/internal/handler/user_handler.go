@@ -13,14 +13,14 @@ import (
 	"github.com/scguoi/remote-ci/backend-go/internal/service"
 )
 
-// UserHandler 用户处理器
-// 对应Java项目的UserController
+// UserHandler handles user-related HTTP requests
+// Corresponds to UserController in the Java project
 type UserHandler struct {
 	userService service.UserService
 	validator   *validator.Validate
 }
 
-// NewUserHandler 创建UserHandler实例
+// NewUserHandler creates a new UserHandler instance
 func NewUserHandler(userService service.UserService) *UserHandler {
 	return &UserHandler{
 		userService: userService,
@@ -28,25 +28,25 @@ func NewUserHandler(userService service.UserService) *UserHandler {
 	}
 }
 
-// RegisterRoutes 注册路由
+// RegisterRoutes registers all user-related routes
 func (h *UserHandler) RegisterRoutes(router *gin.Engine) {
 	v1 := router.Group("/api/v1")
 	{
 		users := v1.Group("/users")
 		{
-			users.POST("", h.CreateUser)                                  // 创建用户
-			users.GET("/:id", h.GetUser)                                  // 根据ID获取用户
-			users.GET("/username/:username", h.GetUserByUsername)         // 根据用户名获取用户
-			users.GET("", h.ListUsers)                                    // 获取用户列表
-			users.PUT("/:id", h.UpdateUser)                               // 更新用户
-			users.DELETE("/:id", h.DeleteUser)                            // 删除用户
-			users.GET("/check-username/:username", h.CheckUsernameExists) // 检查用户名
-			users.GET("/check-email", h.CheckEmailExists)                 // 检查邮箱
+			users.POST("", h.CreateUser)                                  // Create user
+			users.GET("/:id", h.GetUser)                                  // Get user by ID
+			users.GET("/username/:username", h.GetUserByUsername)         // Get user by username
+			users.GET("", h.ListUsers)                                    // Get user list
+			users.PUT("/:id", h.UpdateUser)                               // Update user
+			users.DELETE("/:id", h.DeleteUser)                            // Delete user
+			users.GET("/check-username/:username", h.CheckUsernameExists) // Check username
+			users.GET("/check-email", h.CheckEmailExists)                 // Check email
 		}
 	}
 }
 
-// CreateUser 创建用户
+// CreateUser creates a new user
 // POST /api/v1/users
 func (h *UserHandler) CreateUser(c *gin.Context) {
 	var req common.CreateUserRequest
@@ -55,16 +55,16 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 		return
 	}
 
-	// 验证请求
+	// Validate request
 	if err := h.validator.Struct(&req); err != nil {
 		h.respondWithError(c, common.NewValidationError("Validation failed", err))
 		return
 	}
 
-	// 获取创建者信息（从认证中间件或请求头）
+	// Get creator information (from auth middleware or request headers)
 	createdBy := h.getCurrentUser(c)
 
-	// 调用服务
+	// Call service
 	user, err := h.userService.CreateUser(c.Request.Context(), &req, createdBy)
 	if err != nil {
 		h.respondWithError(c, err)
@@ -74,7 +74,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	h.respondWithSuccess(c, http.StatusCreated, "User created successfully", user)
 }
 
-// GetUser 获取用户
+// GetUser retrieves a user by ID
 // GET /api/v1/users/:id
 func (h *UserHandler) GetUser(c *gin.Context) {
 	id, err := h.parseIDParam(c, "id")
@@ -92,7 +92,7 @@ func (h *UserHandler) GetUser(c *gin.Context) {
 	h.respondWithSuccess(c, http.StatusOK, "User retrieved successfully", user)
 }
 
-// GetUserByUsername 根据用户名获取用户
+// GetUserByUsername retrieves a user by username
 // GET /api/v1/users/username/:username
 func (h *UserHandler) GetUserByUsername(c *gin.Context) {
 	username := c.Param("username")
@@ -110,24 +110,24 @@ func (h *UserHandler) GetUserByUsername(c *gin.Context) {
 	h.respondWithSuccess(c, http.StatusOK, "User retrieved successfully", user)
 }
 
-// ListUsers 获取用户列表
+// ListUsers retrieves a paginated list of users with optional filters
 // GET /api/v1/users?page=0&size=10&username=xxx&email=xxx&is_active=true
 func (h *UserHandler) ListUsers(c *gin.Context) {
 	var filter common.UserFilter
 
-	// 绑定查询参数
+	// Bind query parameters
 	if err := c.ShouldBindQuery(&filter); err != nil {
 		h.respondWithError(c, common.NewValidationError("Invalid query parameters", err))
 		return
 	}
 
-	// 验证参数
+	// Validate parameters
 	if err := h.validator.Struct(&filter); err != nil {
 		h.respondWithError(c, common.NewValidationError("Query parameter validation failed", err))
 		return
 	}
 
-	// 设置默认值
+	// Set default values
 	if filter.Size <= 0 {
 		filter.Size = 10
 	}
@@ -144,7 +144,7 @@ func (h *UserHandler) ListUsers(c *gin.Context) {
 	h.respondWithSuccess(c, http.StatusOK, "Users retrieved successfully", users)
 }
 
-// UpdateUser 更新用户
+// UpdateUser updates an existing user
 // PUT /api/v1/users/:id
 func (h *UserHandler) UpdateUser(c *gin.Context) {
 	id, err := h.parseIDParam(c, "id")
@@ -159,16 +159,16 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// 验证请求
+	// Validate request
 	if err := h.validator.Struct(&req); err != nil {
 		h.respondWithError(c, common.NewValidationError("Validation failed", err))
 		return
 	}
 
-	// 获取更新者信息
+	// Get updater information
 	updatedBy := h.getCurrentUser(c)
 
-	// 调用服务
+	// Call service
 	user, err := h.userService.UpdateUser(c.Request.Context(), id, &req, updatedBy)
 	if err != nil {
 		h.respondWithError(c, err)
@@ -178,7 +178,7 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 	h.respondWithSuccess(c, http.StatusOK, "User updated successfully", user)
 }
 
-// DeleteUser 删除用户
+// DeleteUser deletes a user by ID with version check
 // DELETE /api/v1/users/:id?version=1
 func (h *UserHandler) DeleteUser(c *gin.Context) {
 	id, err := h.parseIDParam(c, "id")
@@ -208,7 +208,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 	h.respondWithSuccess(c, http.StatusOK, "User deleted successfully", nil)
 }
 
-// CheckUsernameExists 检查用户名是否存在
+// CheckUsernameExists checks if a username already exists
 // GET /api/v1/users/check-username/:username
 func (h *UserHandler) CheckUsernameExists(c *gin.Context) {
 	username := c.Param("username")
@@ -236,7 +236,7 @@ func (h *UserHandler) CheckUsernameExists(c *gin.Context) {
 	h.respondWithSuccess(c, http.StatusOK, message, response)
 }
 
-// CheckEmailExists 检查邮箱是否存在
+// CheckEmailExists checks if an email already exists
 // GET /api/v1/users/check-email?email=xxx@example.com
 func (h *UserHandler) CheckEmailExists(c *gin.Context) {
 	email := c.Query("email")
@@ -264,9 +264,9 @@ func (h *UserHandler) CheckEmailExists(c *gin.Context) {
 	h.respondWithSuccess(c, http.StatusOK, message, response)
 }
 
-// 辅助方法
+// Helper methods
 
-// parseIDParam 解析ID参数
+// parseIDParam parses and validates an ID parameter from the URL
 func (h *UserHandler) parseIDParam(c *gin.Context, paramName string) (int64, error) {
 	idStr := c.Param(paramName)
 	if idStr == "" {
@@ -285,15 +285,15 @@ func (h *UserHandler) parseIDParam(c *gin.Context, paramName string) (int64, err
 	return id, nil
 }
 
-// getCurrentUser 获取当前用户（从认证中间件或请求头）
+// getCurrentUser gets the current user (from auth middleware or request headers)
 func (h *UserHandler) getCurrentUser(c *gin.Context) *string {
-	// 这里可以从JWT token、session或请求头中获取当前用户信息
-	// 目前返回固定值，实际项目中需要实现认证中间件
+	// Here we can get current user info from JWT token, session or request headers
+	// Currently returns a fixed value, in actual projects need to implement auth middleware
 	user := "system"
 	return &user
 }
 
-// respondWithSuccess 成功响应
+// respondWithSuccess sends a successful response
 func (h *UserHandler) respondWithSuccess(c *gin.Context, statusCode int, message string, data interface{}) {
 	response := common.ApiResponse[interface{}]{
 		Success:   true,
@@ -304,19 +304,19 @@ func (h *UserHandler) respondWithSuccess(c *gin.Context, statusCode int, message
 	c.JSON(statusCode, response)
 }
 
-// respondWithError 错误响应
+// respondWithError sends an error response
 func (h *UserHandler) respondWithError(c *gin.Context, err error) {
 	var statusCode int
 	var errorCode common.ErrorCode
 	var message string
 
-	// 类型断言，获取应用错误信息
+	// Type assertion to get application error information
 	if appErr, ok := err.(*common.AppError); ok {
 		statusCode = appErr.HTTPStatus
 		errorCode = appErr.Code
 		message = appErr.Message
 	} else {
-		// 未知错误，返回500
+		// Unknown error, return 500
 		statusCode = http.StatusInternalServerError
 		errorCode = common.ErrCodeInternal
 		message = "Internal server error"
