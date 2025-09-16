@@ -60,8 +60,26 @@ extract_comments() {
 # Function to check if text contains Chinese characters
 contains_chinese() {
     local text="$1"
-    # Check for Chinese characters (Unicode ranges)
-    echo "$text" | grep -qP '[\x{4e00}-\x{9fff}]' 2>/dev/null
+    # Method 1: Try Python Unicode detection (most reliable)
+    if command -v python3 >/dev/null 2>&1; then
+        python3 -c "import re, sys; sys.exit(0 if re.search(r'[\u4e00-\u9fff]', '''$text''') else 1)" 2>/dev/null
+        return $?
+    fi
+
+    # Method 2: Try Perl regex (GNU grep)
+    if echo "$text" | grep -qP '[\x{4e00}-\x{9fff}]' 2>/dev/null; then
+        return 0
+    fi
+
+    # Method 3: Fallback - check for non-ASCII characters (broader detection)
+    if echo "$text" | LC_ALL=C grep -q '[^\x00-\x7F]' 2>/dev/null; then
+        # Additional heuristic: if contains non-ASCII and no common European chars
+        if ! echo "$text" | LC_ALL=C grep -q '[àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]' 2>/dev/null; then
+            return 0
+        fi
+    fi
+
+    return 1
 }
 
 # Function to check comments in a single file
