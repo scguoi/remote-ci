@@ -26,31 +26,35 @@ import lombok.NoArgsConstructor;
 public class CreateUserRequest {
 
   /** Username for the new user account (3-50 characters, alphanumeric and underscore only). */
-  @NotBlank(message = "用户名不能为空")
-  @Size(min = 3, max = 50, message = "用户名长度必须在3-50个字符之间")
-  @Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "用户名只能包含字母、数字和下划线")
+  @NotBlank(message = "Username cannot be empty")
+  @Size(min = 3, max = 50, message = "Username length must be between 3-50 characters")
+  @Pattern(
+      regexp = "^[a-zA-Z0-9_]+$",
+      message = "Username can only contain letters, numbers and underscores")
   private String username;
 
   /** Email address for the user (must be valid email format). */
-  @NotBlank(message = "邮箱不能为空")
-  @Email(message = "邮箱格式不正确")
-  @Size(max = 100, message = "邮箱长度不能超过100个字符")
+  @NotBlank(message = "Email cannot be empty")
+  @Email(message = "Invalid email format")
+  @Size(max = 100, message = "Email length cannot exceed 100 characters")
   private String email;
 
   /** Full name of the user (2-100 characters). */
-  @NotBlank(message = "姓名不能为空")
-  @Size(min = 2, max = 100, message = "姓名长度必须在2-100个字符之间")
+  @NotBlank(message = "Full name cannot be empty")
+  @Size(min = 2, max = 100, message = "Full name length must be between 2-100 characters")
   @JsonProperty("full_name")
   private String fullName;
 
   /** Password for the user account (8-128 characters, must contain letters and numbers). */
-  @NotBlank(message = "密码不能为空")
-  @Size(min = 8, max = 128, message = "密码长度必须在8-128个字符之间")
-  @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d).*$", message = "密码必须包含至少一个字母和一个数字")
+  @NotBlank(message = "Password cannot be empty")
+  @Size(min = 8, max = 128, message = "Password length must be between 8-128 characters")
+  @Pattern(
+      regexp = "^(?=.*[a-zA-Z])(?=.*\\d).*$",
+      message = "Password must contain at least one letter and one number")
   private String password;
 
   /** Phone number (optional, must be valid format if provided). */
-  @Pattern(regexp = "^(\\+?86)?1[3-9]\\d{9}$|^$", message = "手机号格式不正确")
+  @Pattern(regexp = "^(\\+?86)?1[3-9]\\d{9}$|^$", message = "Invalid phone number format")
   @JsonProperty("phone_number")
   private String phoneNumber;
 }

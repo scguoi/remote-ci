@@ -1,7 +1,7 @@
 import { processData, handleData } from './src/utils/helpers.js';
 
 /**
- * 主函数
+ * Main function
  */
 function main(): void {
   console.log('Hello World from TypeScript Frontend!');
@@ -9,7 +9,7 @@ function main(): void {
   const greeting: string = '欢迎使用TypeScript前端项目';
   console.log(greeting);
 
-  // 测试工具函数
+  // Test utility functions
   const testData: string | null = 'test data';
   const processedData: string = processData(testData);
   console.log('Processed data:', processedData);
@@ -19,5 +19,5 @@ function main(): void {
   console.log('Handled data:', handledData);
 }
 
-// 执行主函数
+// Execute main function
 main();

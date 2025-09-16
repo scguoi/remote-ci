@@ -1,4 +1,4 @@
-"""测试配置和公共fixture."""
+"""Test configuration and common fixtures."""
 
 import os
 
@@ -15,10 +15,10 @@ from app.core.models import Base
 from app.core.schemas import APIResponse, HealthResponse
 from app.db.database import get_db
 
-# 设置测试环境变量
+# Set test environment variables
 os.environ["DATABASE_URL"] = "sqlite:///./test.db"
 
-# 使用内存SQLite数据库进行测试
+# Use in-memory SQLite database for testing
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
 
 engine = create_engine(
@@ -31,7 +31,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 def override_get_db():
-    """测试数据库会话依赖."""
+    """Test database session dependency."""
     try:
         db = TestingSessionLocal()
         yield db
@@ -39,32 +39,32 @@ def override_get_db():
         db.close()
 
 
-# 创建测试专用的FastAPI应用（不使用lifespan）
+# Create test-specific FastAPI app (without lifespan)
 def create_test_app():
-    """创建测试用的FastAPI应用."""
+    """Create FastAPI app for testing."""
     test_app = FastAPI(
         title=settings.project_name,
         description=settings.description,
         version=settings.version,
-        # 不使用lifespan避免数据库连接问题
+        # Don't use lifespan to avoid database connection issues
     )
 
-    # 健康检查端点
-    @test_app.get("/healthz", response_model=HealthResponse, tags=["健康检查"])
+    # Health check endpoint
+    @test_app.get("/healthz", response_model=HealthResponse, tags=["Health Check"])
     async def health_check():
-        """服务健康检查."""
+        """Service health check."""
         from datetime import datetime
 
         return HealthResponse(
             status="healthy", timestamp=datetime.utcnow(), version=settings.version
         )
 
-    @test_app.get("/", response_model=APIResponse, tags=["根路径"])
+    @test_app.get("/", response_model=APIResponse, tags=["Root Path"])
     async def root():
-        """根路径欢迎信息."""
+        """Root path welcome message."""
         return APIResponse(
             success=True,
-            message=f"欢迎使用 {settings.project_name}",
+            message=f"Welcome to {settings.project_name}",
             data={
                 "version": settings.version,
                 "docs_url": "/docs",
@@ -72,7 +72,7 @@ def create_test_app():
             },
         )
 
-    # 注册API路由
+    # Register API routes
     test_app.include_router(users.router, prefix="/api/v1", tags=["API v1"])
 
     return test_app
@@ -80,7 +80,7 @@ def create_test_app():
 
 @pytest.fixture(scope="function")
 def db_session():
-    """创建测试数据库会话."""
+    """Create test database session."""
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     try:
@@ -92,7 +92,7 @@ def db_session():
 
 @pytest.fixture(scope="function")
 def client(db_session):
-    """创建测试客户端."""
+    """Create test client."""
     test_app = create_test_app()
     test_app.dependency_overrides[get_db] = override_get_db
 

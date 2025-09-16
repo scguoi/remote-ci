@@ -1,4 +1,4 @@
-"""FastAPI应用程序主入口."""
+"""FastAPI application main entry point."""
 
 from contextlib import asynccontextmanager
 from datetime import datetime
@@ -16,23 +16,23 @@ from .db.database import engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """应用程序生命周期管理."""
-    # 启动时：创建数据库表（测试时会被覆盖）
+    """Application lifecycle management."""
+    # On startup: create database tables (will be overridden during testing)
     try:
         Base.metadata.create_all(bind=engine)
-        print(f"🚀 {settings.project_name} 启动成功")
-        print(f"📖 API文档: http://{settings.host}:{settings.port}/docs")
+        print(f"🚀 {settings.project_name} started successfully")
+        print(f"📖 API Documentation: http://{settings.host}:{settings.port}/docs")
     except Exception as e:
-        # 测试时可能会有连接错误，这是正常的
+        # Connection errors may occur during testing, which is normal
         if "test" not in settings.database_url.lower():
-            print(f"⚠️ 数据库连接警告: {e}")
+            print(f"⚠️ Database connection warning: {e}")
         pass
     yield
-    # 关闭时的清理工作
-    print(f"🛑 {settings.project_name} 已停止")
+    # Cleanup work on shutdown
+    print(f"🛑 {settings.project_name} has stopped")
 
 
-# 创建FastAPI应用实例
+# Create FastAPI application instance
 app = FastAPI(
     title=settings.project_name,
     description=settings.description,
@@ -43,7 +43,7 @@ app = FastAPI(
     openapi_url="/openapi.json",
 )
 
-# 添加CORS中间件
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
@@ -55,32 +55,32 @@ app.add_middleware(
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request, exc):
-    """全局异常处理."""
+    """Global exception handler."""
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         content=APIResponse(
             success=False,
-            message="服务器内部错误",
+            message="Internal server error",
             error=str(exc) if not settings.is_production else "Internal Server Error",
         ).model_dump(),
     )
 
 
-# 健康检查端点
-@app.get("/healthz", response_model=HealthResponse, tags=["健康检查"])
+# Health check endpoint
+@app.get("/healthz", response_model=HealthResponse, tags=["Health Check"])
 async def health_check():
-    """服务健康检查."""
+    """Service health check."""
     return HealthResponse(
         status="healthy", timestamp=datetime.utcnow(), version=settings.version
     )
 
 
-@app.get("/", response_model=APIResponse, tags=["根路径"])
+@app.get("/", response_model=APIResponse, tags=["Root Path"])
 async def root():
-    """根路径欢迎信息."""
+    """Root path welcome message."""
     return APIResponse(
         success=True,
-        message=f"欢迎使用 {settings.project_name}",
+        message=f"Welcome to {settings.project_name}",
         data={
             "version": settings.version,
             "docs_url": "/docs",
@@ -89,7 +89,7 @@ async def root():
     )
 
 
-# 注册API路由
+# Register API routes
 app.include_router(users.router, prefix="/api/v1", tags=["API v1"])
 
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Python后端服务入口文件
-运行FastAPI用户管理服务
+Python backend service entry point
+Runs FastAPI user management service
 """
 
 import uvicorn
@@ -11,11 +11,11 @@ from app.core.config import settings
 
 
 def main() -> None:
-    """启动FastAPI服务."""
-    print(f"🚀 启动 {settings.project_name}")
-    print(f"🌐 服务地址: http://{settings.host}:{settings.port}")
-    print(f"📖 API文档: http://{settings.host}:{settings.port}/docs")
-    print("欢迎使用Python后端服务")
+    """Start FastAPI service."""
+    print(f"🚀 Starting {settings.project_name}")
+    print(f"🌐 Service URL: http://{settings.host}:{settings.port}")
+    print(f"📖 API Documentation: http://{settings.host}:{settings.port}/docs")
+    print("Welcome to Python Backend Service")
 
     uvicorn.run(
         "app.main:app",

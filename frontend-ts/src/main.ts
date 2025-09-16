@@ -7,7 +7,7 @@ import {
 } from './utils/helpers.js';
 
 /**
- * 登录表单管理类
+ * Login form management class
  */
 class LoginForm {
   private form: HTMLFormElement;
@@ -46,13 +46,13 @@ class LoginForm {
   }
 
   /**
-   * 初始化事件监听器
+   * Initialize event listeners
    */
   private initializeEventListeners(): void {
-    // 表单提交事件
+    // Form submission event
     this.form.addEventListener('submit', this.handleSubmit.bind(this));
 
-    // 实时验证事件
+    // Real-time validation event
     this.usernameInput.addEventListener(
       'blur',
       this.validateUsernameField.bind(this)
@@ -62,7 +62,7 @@ class LoginForm {
       this.validatePasswordField.bind(this)
     );
 
-    // 输入时清除错误状态
+    // Clear error state on input
     this.usernameInput.addEventListener('input', () =>
       this.clearFieldError('username')
     );
@@ -70,7 +70,7 @@ class LoginForm {
       this.clearFieldError('password')
     );
 
-    // 记住我复选框事件
+    // Remember me checkbox event
     this.rememberMeInput.addEventListener(
       'change',
       this.handleRememberMeChange.bind(this)
@@ -78,7 +78,7 @@ class LoginForm {
   }
 
   /**
-   * 加载记住的用户名
+   * Load remembered username
    */
   private loadRememberedUsername(): void {
     const rememberedUsername = LocalStorageHelper.getRememberedUsername();
@@ -90,7 +90,7 @@ class LoginForm {
   }
 
   /**
-   * 处理表单提交
+   * Handle form submission
    */
   private async handleSubmit(event: Event): Promise<void> {
     event.preventDefault();
@@ -101,17 +101,17 @@ class LoginForm {
       rememberMe: this.rememberMeInput.checked,
     };
 
-    // 验证表单
+    // Validate form
     const errors = validateLoginForm(credentials);
     this.displayErrors(errors);
 
-    // 如果有验证错误，不提交表单
+    // If there are validation errors, don't submit form
     if (Object.keys(errors).length > 0) {
       this.focusFirstErrorField(errors);
       return;
     }
 
-    // 开始登录流程
+    // Start login process
     this.setLoadingState(true);
     this.hideStatus();
 
@@ -124,15 +124,17 @@ class LoginForm {
         this.handleLoginFailure(result.message);
       }
     } catch (error) {
-      this.handleLoginFailure('登录过程中发生错误，请稍后重试');
-      console.error('登录错误:', error);
+      this.handleLoginFailure(
+        'An error occurred during login, please try again later'
+      );
+      console.error('Login error:', error);
     } finally {
       this.setLoadingState(false);
     }
   }
 
   /**
-   * 验证用户名字段
+   * Validate username field
    */
   private validateUsernameField(): void {
     const username = this.usernameInput.value.trim();
@@ -146,7 +148,7 @@ class LoginForm {
   }
 
   /**
-   * 验证密码字段
+   * Validate password field
    */
   private validatePasswordField(): void {
     const password = this.passwordInput.value;
@@ -160,7 +162,7 @@ class LoginForm {
   }
 
   /**
-   * 显示字段错误
+   * Display field error
    */
   private displayFieldError(
     field: keyof ValidationErrors,
@@ -183,7 +185,7 @@ class LoginForm {
   }
 
   /**
-   * 清除字段错误状态
+   * Clear field error state
    */
   private clearFieldError(field: keyof ValidationErrors): void {
     const input =
@@ -196,7 +198,7 @@ class LoginForm {
   }
 
   /**
-   * 显示所有验证错误
+   * Display all validation errors
    */
   private displayErrors(errors: ValidationErrors): void {
     this.displayFieldError('username', errors.username);
@@ -204,7 +206,7 @@ class LoginForm {
   }
 
   /**
-   * 焦点定位到第一个错误字段
+   * Focus on first error field
    */
   private focusFirstErrorField(errors: ValidationErrors): void {
     if (errors.username) {
@@ -215,7 +217,7 @@ class LoginForm {
   }
 
   /**
-   * 设置加载状态
+   * Set loading state
    */
   private setLoadingState(isLoading: boolean): void {
     if (isLoading) {
@@ -228,13 +230,13 @@ class LoginForm {
   }
 
   /**
-   * 处理登录成功
+   * Handle login success
    */
   private handleLoginSuccess(
     credentials: LoginCredentials,
     message: string
   ): void {
-    // 处理记住我功能
+    // Handle remember me functionality
     if (credentials.rememberMe) {
       LocalStorageHelper.setRememberMe(credentials.username);
     } else {
@@ -243,17 +245,20 @@ class LoginForm {
 
     this.showStatus(message, 'success');
 
-    // 清空密码字段
+    // Clear password field
     this.passwordInput.value = '';
 
-    // 实际应用中，这里应该重定向到主页面
+    // In real application, should redirect to main page here
     setTimeout(() => {
-      this.showStatus('登录成功！正在跳转到主页面...', 'success');
+      this.showStatus(
+        'Login successful! Redirecting to main page...',
+        'success'
+      );
     }, 1000);
   }
 
   /**
-   * 处理登录失败
+   * Handle login failure
    */
   private handleLoginFailure(message: string): void {
     this.showStatus(message, 'error');
@@ -262,7 +267,7 @@ class LoginForm {
   }
 
   /**
-   * 显示状态消息
+   * Display status message
    */
   private showStatus(message: string, type: 'success' | 'error'): void {
     this.loginStatus.textContent = message;
@@ -271,7 +276,7 @@ class LoginForm {
   }
 
   /**
-   * 隐藏状态消息
+   * Hide status message
    */
   private hideStatus(): void {
     this.loginStatus.style.display = 'none';
@@ -280,7 +285,7 @@ class LoginForm {
   }
 
   /**
-   * 处理记住我复选框变化
+   * Handle remember me checkbox change
    */
   private handleRememberMeChange(): void {
     if (!this.rememberMeInput.checked) {
@@ -290,27 +295,27 @@ class LoginForm {
 }
 
 /**
- * DOM加载完成后初始化登录表单
+ * Initialize login form after DOM loads
  */
 document.addEventListener('DOMContentLoaded', () => {
   try {
     new LoginForm();
-    console.log('登录表单初始化成功');
+    console.log('Login form initialized successfully');
 
-    // 开发模式下显示测试账户信息
+    // Display test account info in development mode
     if (
       typeof window !== 'undefined' &&
       window.location.hostname === 'localhost'
     ) {
-      console.log('测试账户:');
-      console.log('1. 用户名: admin, 密码: admin123');
-      console.log('2. 用户名: user, 密码: user123');
-      console.log('3. 用户名: 测试用户, 密码: test123');
+      console.log('Test accounts:');
+      console.log('1. Username: admin, Password: admin123');
+      console.log('2. Username: user, Password: user123');
+      console.log('3. Username: testuser, Password: test123');
     }
   } catch (error) {
-    console.error('登录表单初始化失败:', error);
+    console.error('Login form initialization failed:', error);
 
-    // 显示错误消息给用户
+    // Display error message to user
     const errorElement = document.createElement('div');
     errorElement.className = 'login-status error';
     errorElement.style.display = 'block';
@@ -319,7 +324,8 @@ document.addEventListener('DOMContentLoaded', () => {
     errorElement.style.left = '50%';
     errorElement.style.transform = 'translateX(-50%)';
     errorElement.style.zIndex = '9999';
-    errorElement.textContent = '页面初始化失败，请刷新页面重试';
+    errorElement.textContent =
+      'Page initialization failed, please refresh and try again';
     document.body.appendChild(errorElement);
   }
 });

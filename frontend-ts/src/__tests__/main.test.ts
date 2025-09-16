@@ -1,10 +1,10 @@
 /**
- * 主页面功能测试
+ * Main page functionality tests
  */
 
 import { simulateLogin, LocalStorageHelper } from '../utils/helpers';
 
-// 模拟导入的模块
+// Mock imported modules
 jest.mock('../utils/helpers', () => ({
   ...jest.requireActual('../utils/helpers'),
   simulateLogin: jest.fn(),
@@ -22,9 +22,9 @@ const mockLocalStorageHelper = LocalStorageHelper as jest.Mocked<
   typeof LocalStorageHelper
 >;
 
-describe('登录表单基础测试', () => {
+describe('Basic login form tests', () => {
   beforeEach(() => {
-    // 设置DOM结构
+    // Set up DOM structure
     document.body.innerHTML = `
       <form id="loginForm">
         <input id="username" type="text" />
@@ -37,12 +37,12 @@ describe('登录表单基础测试', () => {
       <div id="loginStatus" style="display: none;"></div>
     `;
 
-    // 重置所有模拟
+    // Reset all mocks
     jest.clearAllMocks();
     mockLocalStorageHelper.getRememberedUsername.mockReturnValue('');
   });
 
-  test('应该正确初始化DOM元素', () => {
+  test('should correctly initialize DOM elements', () => {
     const form = document.getElementById('loginForm') as HTMLFormElement;
     const usernameInput = document.getElementById(
       'username'
@@ -74,7 +74,7 @@ describe('登录表单基础测试', () => {
     expect(passwordError).toBeTruthy();
   });
 
-  test('应该能够触发表单提交事件', async () => {
+  test('should be able to trigger form submission event', async () => {
     const form = document.getElementById('loginForm') as HTMLFormElement;
     const usernameInput = document.getElementById(
       'username'
@@ -83,30 +83,30 @@ describe('登录表单基础测试', () => {
       'password'
     ) as HTMLInputElement;
 
-    // 设置有效输入
+    // Set up valid input
     usernameInput.value = 'admin';
     passwordInput.value = 'admin123';
 
     mockSimulateLogin.mockResolvedValue({
       success: true,
-      message: '登录成功！',
+      message: 'Login successful!',
     });
 
-    // 创建一个简单的提交处理函数
+    // Create a simple submit handler function
     let formSubmitted = false;
     form.addEventListener('submit', e => {
       e.preventDefault();
       formSubmitted = true;
     });
 
-    // 触发表单提交
+    // Trigger form submission
     const submitEvent = new Event('submit');
     form.dispatchEvent(submitEvent);
 
     expect(formSubmitted).toBe(true);
   });
 
-  test('应该验证localStorage功能', () => {
+  test('should validate localStorage functionality', () => {
     mockLocalStorageHelper.setRememberMe('testuser');
     expect(mockLocalStorageHelper.setRememberMe).toHaveBeenCalledWith(
       'testuser'
@@ -128,7 +128,7 @@ describe('登录表单基础测试', () => {
 
     mockSimulateLogin.mockResolvedValue({
       success: true,
-      message: '登录成功！',
+      message: 'Login successful!',
       user: {
         id: 1,
         name: 'admin',
@@ -144,11 +144,11 @@ describe('登录表单基础测试', () => {
 
     expect(mockSimulateLogin).toHaveBeenCalledWith(credentials);
     expect(result.success).toBe(true);
-    expect(result.message).toBe('登录成功！');
+    expect(result.message).toBe('Login successful!');
     expect(result.user).toBeDefined();
   });
 
-  test('应该能够处理登录失败', async () => {
+  test('should be able to handle login failure', async () => {
     const credentials = {
       username: 'invalid',
       password: 'wrong',
@@ -157,12 +157,12 @@ describe('登录表单基础测试', () => {
 
     mockSimulateLogin.mockResolvedValue({
       success: false,
-      message: '用户名或密码错误',
+      message: 'Invalid username or password',
     });
 
     const result = await mockSimulateLogin(credentials);
 
     expect(result.success).toBe(false);
-    expect(result.message).toBe('用户名或密码错误');
+    expect(result.message).toBe('Invalid username or password');
   });
 });

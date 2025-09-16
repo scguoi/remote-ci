@@ -1,4 +1,4 @@
-"""数据库连接和会话管理."""
+"""Database connection and session management."""
 
 from typing import Generator
 
@@ -7,23 +7,23 @@ from sqlalchemy.orm import Session, declarative_base, sessionmaker
 
 from ..core.config import settings
 
-# 创建数据库引擎
+# Create database engine
 engine = create_engine(
     settings.database_url,
     pool_pre_ping=True,
     pool_recycle=300,
-    echo=not settings.is_production,  # 生产环境不打印SQL
+    echo=not settings.is_production,  # Do not print SQL in production
 )
 
-# 创建会话工厂
+# Create session factory
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# 声明基类
+# Declarative base class
 Base = declarative_base()
 
 
 def get_db() -> Generator[Session, None, None]:
-    """获取数据库会话的依赖注入函数."""
+    """Dependency injection function to get database session."""
     db = SessionLocal()
     try:
         yield db

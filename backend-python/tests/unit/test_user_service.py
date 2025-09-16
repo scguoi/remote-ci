@@ -1,4 +1,4 @@
-"""用户服务单元测试."""
+"""User service unit tests."""
 
 import pytest
 from sqlalchemy.orm import Session
@@ -8,10 +8,10 @@ from app.core.services.user_service import UserService
 
 
 class TestUserService:
-    """用户服务测试类."""
+    """User service test class."""
 
     def test_create_user_success(self, db_session: Session):
-        """测试成功创建用户."""
+        """Test successful user creation."""
         service = UserService(db_session)
         user_create = UserCreate(
             username="testuser",
@@ -29,47 +29,47 @@ class TestUserService:
         assert user.version == 1
 
     def test_create_user_duplicate_username(self, db_session: Session):
-        """测试创建重复用户名的用户."""
+        """Test creating user with duplicate username."""
         service = UserService(db_session)
         user_create = UserCreate(
             username="testuser", email="test1@example.com", password="password123"
         )
 
-        # 创建第一个用户
+        # Create first user
         service.create_user(user_create)
 
-        # 尝试创建相同用户名的用户
+        # Try to create user with same username
         user_create2 = UserCreate(
-            username="testuser",  # 相同用户名
+            username="testuser",  # Same username
             email="test2@example.com",
             password="password123",
         )
 
-        with pytest.raises(ValueError, match="用户名 'testuser' 已存在"):
+        with pytest.raises(ValueError, match="Username 'testuser' already exists"):
             service.create_user(user_create2)
 
     def test_create_user_duplicate_email(self, db_session: Session):
-        """测试创建重复邮箱的用户."""
+        """Test creating user with duplicate email."""
         service = UserService(db_session)
         user_create = UserCreate(
             username="testuser1", email="test@example.com", password="password123"
         )
 
-        # 创建第一个用户
+        # Create first user
         service.create_user(user_create)
 
-        # 尝试创建相同邮箱的用户
+        # Try to create user with same email
         user_create2 = UserCreate(
             username="testuser2",
-            email="test@example.com",  # 相同邮箱
+            email="test@example.com",  # Same email
             password="password123",
         )
 
-        with pytest.raises(ValueError, match="邮箱 'test@example.com' 已存在"):
+        with pytest.raises(ValueError, match="Email 'test@example.com' already exists"):
             service.create_user(user_create2)
 
     def test_get_user_by_id(self, db_session: Session):
-        """测试根据ID获取用户."""
+        """Test getting user by ID."""
         service = UserService(db_session)
         user_create = UserCreate(
             username="testuser", email="test@example.com", password="password123"
@@ -83,7 +83,7 @@ class TestUserService:
         assert found_user.username == "testuser"
 
     def test_get_user_by_username(self, db_session: Session):
-        """测试根据用户名获取用户."""
+        """Test getting user by username."""
         service = UserService(db_session)
         user_create = UserCreate(
             username="testuser", email="test@example.com", password="password123"
@@ -96,7 +96,7 @@ class TestUserService:
         assert found_user.username == "testuser"
 
     def test_update_user_success(self, db_session: Session):
-        """测试成功更新用户."""
+        """Test successful user update."""
         service = UserService(db_session)
         user_create = UserCreate(
             username="testuser", email="test@example.com", password="password123"
@@ -118,7 +118,7 @@ class TestUserService:
         assert updated_user.version == created_user.version + 1
 
     def test_update_user_version_conflict(self, db_session: Session):
-        """测试更新用户时的版本冲突."""
+        """Test version conflict when updating user."""
         service = UserService(db_session)
         user_create = UserCreate(
             username="testuser", email="test@example.com", password="password123"
@@ -126,13 +126,15 @@ class TestUserService:
 
         created_user = service.create_user(user_create)
 
-        user_update = UserUpdate(email="newemail@example.com", version=99)  # 错误的版本号
+        user_update = UserUpdate(
+            email="newemail@example.com", version=99
+        )  # Wrong version number
 
-        with pytest.raises(ValueError, match="版本冲突"):
+        with pytest.raises(ValueError, match="Version conflict"):
             service.update_user(created_user.id, user_update)
 
     def test_delete_user_success(self, db_session: Session):
-        """测试成功删除用户."""
+        """Test successful user deletion."""
         service = UserService(db_session)
         user_create = UserCreate(
             username="testuser", email="test@example.com", password="password123"
@@ -143,15 +145,15 @@ class TestUserService:
 
         assert success is True
 
-        # 验证用户已被软删除
+        # Verify user has been soft deleted
         deleted_user = service.get_user_by_id(created_user.id)
         assert deleted_user is None
 
     def test_list_users(self, db_session: Session):
-        """测试用户列表查询."""
+        """Test user list query."""
         service = UserService(db_session)
 
-        # 创建多个用户
+        # Create multiple users
         for i in range(5):
             user_create = UserCreate(
                 username=f"user{i}",
@@ -160,7 +162,7 @@ class TestUserService:
             )
             service.create_user(user_create)
 
-        # 测试分页查询
+        # Test paginated query
         result = service.list_users(page=0, size=3)
 
         assert result.total == 5

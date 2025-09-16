@@ -1,4 +1,4 @@
-"""用户业务逻辑服务层."""
+"""User business logic service layer."""
 
 from typing import Optional
 
@@ -11,7 +11,7 @@ from ..security import hash_password
 
 
 class UserService:
-    """用户业务逻辑服务."""
+    """User business logic service."""
 
     def __init__(self, db: Session):
         self.db = db
@@ -20,49 +20,49 @@ class UserService:
     def create_user(
         self, user_create: UserCreate, created_by: str = "system"
     ) -> UserResponse:
-        """创建用户."""
-        # 检查用户名和邮箱是否已存在
+        """Create user."""
+        # Check if username and email already exist
         if self.user_dao.check_username_exists(user_create.username):
-            raise ValueError(f"用户名 '{user_create.username}' 已存在")
+            raise ValueError(f"Username '{user_create.username}' already exists")
 
         if self.user_dao.check_email_exists(user_create.email):
-            raise ValueError(f"邮箱 '{user_create.email}' 已存在")
+            raise ValueError(f"Email '{user_create.email}' already exists")
 
-        # 加密密码
+        # Encrypt password
         hashed_password = hash_password(user_create.password)
 
-        # 创建用户对象（临时处理密码）
+        # Create user object (temporary password handling)
         user_data = user_create.model_copy()
 
-        # 创建用户记录
+        # Create user record
         db_user = self.user_dao.create_user(user_data, created_by)
 
-        # 更新加密密码（这里需要重新设置）
+        # Update hashed password (needs to be reset here)
         db_user.hashed_password = hashed_password
         self.db.commit()
 
         return UserResponse.model_validate(db_user)
 
     def get_user_by_id(self, user_id: int) -> Optional[UserResponse]:
-        """根据ID获取用户."""
+        """Get user by ID."""
         db_user = self.user_dao.get_user_by_id(user_id)
         if not db_user:
             return None
         return UserResponse.model_validate(db_user)
 
     def get_user_by_username(self, username: str) -> Optional[UserResponse]:
-        """根据用户名获取用户."""
+        """Get user by username."""
         db_user = self.user_dao.get_user_by_username(username)
         if not db_user:
             return None
         return UserResponse.model_validate(db_user)
 
     def check_username_exists(self, username: str) -> bool:
-        """检查用户名是否存在."""
+        """Check if username exists."""
         return self.user_dao.check_username_exists(username)
 
     def check_email_exists(self, email: str) -> bool:
-        """检查邮箱是否存在."""
+        """Check if email exists."""
         return self.user_dao.check_email_exists(email)
 
     def list_users(
@@ -73,8 +73,8 @@ class UserService:
         username: Optional[str] = None,
         email: Optional[str] = None,
     ) -> UserListResponse:
-        """分页查询用户列表."""
-        if size > 100:  # 限制每页最大数量
+        """Paginated user list query."""
+        if size > 100:  # Limit maximum number per page
             size = 100
 
         users, total = self.user_dao.list_users(page, size, is_active, username, email)
@@ -86,12 +86,14 @@ class UserService:
     def update_user(
         self, user_id: int, user_update: UserUpdate, updated_by: str = "system"
     ) -> Optional[UserResponse]:
-        """更新用户."""
-        # 检查邮箱唯一性（如果要更新邮箱）
+        """Update user."""
+        # Check email uniqueness (if email is to be updated)
         if user_update.email:
             existing_user = self.user_dao.get_user_by_email(user_update.email)
             if existing_user and existing_user.id != user_id:
-                raise ValueError(f"邮箱 '{user_update.email}' 已被其他用户使用")
+                raise ValueError(
+                    f"Email '{user_update.email}' is already used by another user"
+                )
 
         db_user = self.user_dao.update_user(user_id, user_update, updated_by)
         if not db_user:
@@ -102,11 +104,11 @@ class UserService:
     def delete_user(
         self, user_id: int, version: int, deleted_by: str = "system"
     ) -> bool:
-        """删除用户."""
+        """Delete user."""
         return self.user_dao.delete_user(user_id, version, deleted_by)
 
     def authenticate_user(self, username: str, password: str) -> Optional[User]:
-        """用户身份验证."""
+        """User authentication."""
         from ..security import verify_password
 
         db_user = self.user_dao.get_user_by_username(username)

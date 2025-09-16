@@ -44,16 +44,16 @@ export default [
       prettier: prettier,
     },
     rules: {
-      // Prettier集成
+      // Prettier integration
       'prettier/prettier': 'error',
 
-      // TypeScript基本规则
+      // TypeScript basic rules
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/no-non-null-assertion': 'error',
 
-      // 代码复杂度控制
+      // Code complexity control
       complexity: ['warn', 10],
       'max-lines-per-function': [
         'warn',
@@ -61,7 +61,7 @@ export default [
       ],
       'max-params': ['warn', 5],
 
-      // 最佳实践
+      // Best practices
       'no-console': 'warn',
       'no-debugger': 'error',
       'prefer-const': 'error',

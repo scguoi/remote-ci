@@ -1,8 +1,8 @@
 /**
- * Jest 测试环境设置
+ * Jest test environment setup
  */
 
-// 模拟 localStorage
+// Mock localStorage
 const localStorageMock = ((): Storage => {
   let store: { [key: string]: string } = {};
 
@@ -28,17 +28,17 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// 模拟 console.warn 以避免测试时出现警告
+// Mock console.warn to avoid warnings during tests
 const originalWarn = console.warn;
 console.warn = jest.fn();
 
-// 在每个测试前重置所有模拟
+// Reset all mocks before each test
 beforeEach((): void => {
   localStorageMock.clear();
   jest.clearAllMocks();
 });
 
-// 在所有测试结束后恢复 console.warn
+// Restore console.warn after all tests
 afterAll((): void => {
   console.warn = originalWarn;
 });

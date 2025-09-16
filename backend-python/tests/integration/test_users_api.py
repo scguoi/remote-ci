@@ -1,20 +1,20 @@
-"""用户API集成测试."""
+"""User API integration tests."""
 
 from fastapi.testclient import TestClient
 
 
 class TestUsersAPI:
-    """用户API集成测试类."""
+    """User API integration test class."""
 
     def test_health_check(self, client: TestClient):
-        """测试健康检查端点."""
+        """Test health check endpoint."""
         response = client.get("/healthz")
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
 
     def test_create_user_success(self, client: TestClient):
-        """测试成功创建用户."""
+        """Test successful user creation."""
         user_data = {
             "username": "testuser",
             "email": "test@example.com",
@@ -27,40 +27,40 @@ class TestUsersAPI:
 
         data = response.json()
         assert data["success"] is True
-        assert data["message"] == "用户创建成功"
+        assert data["message"] == "User created successfully"
         assert data["data"]["username"] == "testuser"
         assert data["data"]["email"] == "test@example.com"
 
     def test_create_user_invalid_email(self, client: TestClient):
-        """测试创建用户时邮箱格式无效."""
+        """Test creating user with invalid email format."""
         user_data = {
             "username": "testuser",
-            "email": "invalid-email",  # 无效邮箱格式
+            "email": "invalid-email",  # Invalid email format
             "password": "password123",
         }
 
         response = client.post("/api/v1/users/", json=user_data)
-        assert response.status_code == 422  # 验证错误
+        assert response.status_code == 422  # Validation error
 
     def test_create_user_duplicate(self, client: TestClient):
-        """测试创建重复用户."""
+        """Test creating duplicate user."""
         user_data = {
             "username": "testuser",
             "email": "test@example.com",
             "password": "password123",
         }
 
-        # 创建第一个用户
+        # Create first user
         response1 = client.post("/api/v1/users/", json=user_data)
         assert response1.status_code == 201
 
-        # 尝试创建重复用户
+        # Try to create duplicate user
         response2 = client.post("/api/v1/users/", json=user_data)
         assert response2.status_code == 400
 
     def test_get_user_by_id(self, client: TestClient):
-        """测试根据ID获取用户."""
-        # 先创建用户
+        """Test getting user by ID."""
+        # Create user first
         user_data = {
             "username": "testuser",
             "email": "test@example.com",
@@ -69,7 +69,7 @@ class TestUsersAPI:
         response = client.post("/api/v1/users/", json=user_data)
         user_id = response.json()["data"]["id"]
 
-        # 获取用户
+        # Get user
         response = client.get(f"/api/v1/users/{user_id}")
         assert response.status_code == 200
 
@@ -78,13 +78,13 @@ class TestUsersAPI:
         assert data["data"]["id"] == user_id
 
     def test_get_user_not_found(self, client: TestClient):
-        """测试获取不存在的用户."""
+        """Test getting non-existent user."""
         response = client.get("/api/v1/users/999")
         assert response.status_code == 404
 
     def test_get_user_by_username(self, client: TestClient):
-        """测试根据用户名获取用户."""
-        # 先创建用户
+        """Test getting user by username."""
+        # Create user first
         user_data = {
             "username": "testuser",
             "email": "test@example.com",
@@ -92,7 +92,7 @@ class TestUsersAPI:
         }
         client.post("/api/v1/users/", json=user_data)
 
-        # 根据用户名获取用户
+        # Get user by username
         response = client.get("/api/v1/users/username/testuser")
         assert response.status_code == 200
 
@@ -101,8 +101,8 @@ class TestUsersAPI:
         assert data["data"]["username"] == "testuser"
 
     def test_list_users(self, client: TestClient):
-        """测试用户列表查询."""
-        # 创建多个用户
+        """Test user list query."""
+        # Create multiple users
         for i in range(3):
             user_data = {
                 "username": f"user{i}",
@@ -111,7 +111,7 @@ class TestUsersAPI:
             }
             client.post("/api/v1/users/", json=user_data)
 
-        # 查询用户列表
+        # Query user list
         response = client.get("/api/v1/users/?page=0&size=10")
         assert response.status_code == 200
 
@@ -121,8 +121,8 @@ class TestUsersAPI:
         assert len(data["data"]["users"]) == 3
 
     def test_update_user(self, client: TestClient):
-        """测试更新用户."""
-        # 先创建用户
+        """Test updating user."""
+        # Create user first
         user_data = {
             "username": "testuser",
             "email": "test@example.com",
@@ -131,7 +131,7 @@ class TestUsersAPI:
         response = client.post("/api/v1/users/", json=user_data)
         created_user = response.json()["data"]
 
-        # 更新用户
+        # Update user
         update_data = {
             "email": "updated@example.com",
             "full_name": "Updated Name",
@@ -147,8 +147,8 @@ class TestUsersAPI:
         assert data["data"]["version"] == created_user["version"] + 1
 
     def test_delete_user(self, client: TestClient):
-        """测试删除用户."""
-        # 先创建用户
+        """Test deleting user."""
+        # Create user first
         user_data = {
             "username": "testuser",
             "email": "test@example.com",
@@ -157,7 +157,7 @@ class TestUsersAPI:
         response = client.post("/api/v1/users/", json=user_data)
         created_user = response.json()["data"]
 
-        # 删除用户
+        # Delete user
         response = client.delete(
             f"/api/v1/users/{created_user['id']}?version={created_user['version']}"
         )
@@ -166,13 +166,13 @@ class TestUsersAPI:
         data = response.json()
         assert data["success"] is True
 
-        # 验证用户已被删除
+        # Verify user has been deleted
         response = client.get(f"/api/v1/users/{created_user['id']}")
         assert response.status_code == 404
 
     def test_check_username_exists(self, client: TestClient):
-        """测试检查用户名是否存在."""
-        # 先创建用户
+        """Test checking if username exists."""
+        # Create user first
         user_data = {
             "username": "testuser",
             "email": "test@example.com",
@@ -180,21 +180,21 @@ class TestUsersAPI:
         }
         client.post("/api/v1/users/", json=user_data)
 
-        # 检查存在的用户名
+        # Check existing username
         response = client.get("/api/v1/users/check-username/testuser")
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["exists"] is True
 
-        # 检查不存在的用户名
+        # Check non-existing username
         response = client.get("/api/v1/users/check-username/nonexistent")
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["exists"] is False
 
     def test_check_email_exists(self, client: TestClient):
-        """测试检查邮箱是否存在."""
-        # 先创建用户
+        """Test checking if email exists."""
+        # Create user first
         user_data = {
             "username": "testuser",
             "email": "test@example.com",
@@ -202,13 +202,13 @@ class TestUsersAPI:
         }
         client.post("/api/v1/users/", json=user_data)
 
-        # 检查存在的邮箱
+        # Check existing email
         response = client.get("/api/v1/users/check-email?email=test@example.com")
         assert response.status_code == 200
         data = response.json()
         assert data["data"]["exists"] is True
 
-        # 检查不存在的邮箱
+        # Check non-existing email
         response = client.get("/api/v1/users/check-email?email=nonexistent@example.com")
         assert response.status_code == 200
         data = response.json()

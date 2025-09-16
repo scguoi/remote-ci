@@ -1,4 +1,4 @@
-"""用户数据访问对象（DAO）."""
+"""User Data Access Object (DAO)."""
 
 from datetime import datetime
 from typing import List, Optional, Tuple
@@ -12,18 +12,18 @@ from ...core.schemas import UserCreate, UserUpdate
 
 
 class UserDAO:
-    """用户数据访问对象."""
+    """User data access object."""
 
     def __init__(self, db: Session):
         self.db = db
 
     def create_user(self, user_create: UserCreate, created_by: str = "system") -> User:
-        """创建用户."""
+        """Create user."""
         db_user = User(
             username=user_create.username,
             email=user_create.email,
             full_name=user_create.full_name,
-            hashed_password="",  # 这里应该传入已加密的密码
+            hashed_password="",  # Should pass in hashed password here
             is_active=user_create.is_active,
             created_by=created_by,
             updated_by=created_by,
@@ -36,10 +36,10 @@ class UserDAO:
             return db_user
         except IntegrityError:
             self.db.rollback()
-            raise ValueError("用户名或邮箱已存在")
+            raise ValueError("Username or email already exists")
 
     def get_user_by_id(self, user_id: int) -> Optional[User]:
-        """根据ID获取用户."""
+        """Get user by ID."""
         return (
             self.db.query(User)
             .filter(and_(User.id == user_id, User.deleted_at.is_(None)))
@@ -47,7 +47,7 @@ class UserDAO:
         )
 
     def get_user_by_username(self, username: str) -> Optional[User]:
-        """根据用户名获取用户."""
+        """Get user by username."""
         return (
             self.db.query(User)
             .filter(and_(User.username == username, User.deleted_at.is_(None)))
@@ -55,7 +55,7 @@ class UserDAO:
         )
 
     def get_user_by_email(self, email: str) -> Optional[User]:
-        """根据邮箱获取用户."""
+        """Get user by email."""
         return (
             self.db.query(User)
             .filter(and_(User.email == email, User.deleted_at.is_(None)))
@@ -63,7 +63,7 @@ class UserDAO:
         )
 
     def check_username_exists(self, username: str) -> bool:
-        """检查用户名是否存在."""
+        """Check if username exists."""
         return (
             self.db.query(User)
             .filter(and_(User.username == username, User.deleted_at.is_(None)))
@@ -72,7 +72,7 @@ class UserDAO:
         )
 
     def check_email_exists(self, email: str) -> bool:
-        """检查邮箱是否存在."""
+        """Check if email exists."""
         return (
             self.db.query(User)
             .filter(and_(User.email == email, User.deleted_at.is_(None)))
@@ -88,10 +88,10 @@ class UserDAO:
         username: Optional[str] = None,
         email: Optional[str] = None,
     ) -> Tuple[List[User], int]:
-        """分页查询用户列表."""
+        """Paginated user list query."""
         query = self.db.query(User).filter(User.deleted_at.is_(None))
 
-        # 应用过滤条件
+        # Apply filter conditions
         if is_active is not None:
             query = query.filter(User.is_active == is_active)
 
@@ -101,10 +101,10 @@ class UserDAO:
         if email:
             query = query.filter(User.email.contains(email))
 
-        # 获取总数
+        # Get total count
         total = query.count()
 
-        # 分页查询
+        # Paginated query
         users = query.offset(page * size).limit(size).all()
 
         return users, total
@@ -112,21 +112,23 @@ class UserDAO:
     def update_user(
         self, user_id: int, user_update: UserUpdate, updated_by: str = "system"
     ) -> Optional[User]:
-        """更新用户（乐观锁）."""
+        """Update user (optimistic lock)."""
         db_user = self.get_user_by_id(user_id)
         if not db_user:
             return None
 
-        # 检查版本号（乐观锁）
+        # Check version number (optimistic lock)
         if db_user.version != user_update.version:
-            raise ValueError(f"版本冲突：当前版本 {db_user.version}，请求版本 {user_update.version}")
+            raise ValueError(
+                f"Version conflict: current version {db_user.version}, requested version {user_update.version}"
+            )
 
-        # 更新字段
+        # Update fields
         update_data = user_update.model_dump(exclude_unset=True, exclude={"version"})
         for field, value in update_data.items():
             setattr(db_user, field, value)
 
-        # 更新审计字段
+        # Update audit fields
         db_user.updated_at = datetime.utcnow()
         db_user.updated_by = updated_by
         db_user.version += 1
@@ -137,21 +139,23 @@ class UserDAO:
             return db_user
         except IntegrityError:
             self.db.rollback()
-            raise ValueError("邮箱已存在")
+            raise ValueError("Email already exists")
 
     def delete_user(
         self, user_id: int, version: int, deleted_by: str = "system"
     ) -> bool:
-        """软删除用户（乐观锁）."""
+        """Soft delete user (optimistic lock)."""
         db_user = self.get_user_by_id(user_id)
         if not db_user:
             return False
 
-        # 检查版本号（乐观锁）
+        # Check version number (optimistic lock)
         if db_user.version != version:
-            raise ValueError(f"版本冲突：当前版本 {db_user.version}，请求版本 {version}")
+            raise ValueError(
+                f"Version conflict: current version {db_user.version}, requested version {version}"
+            )
 
-        # 软删除
+        # Soft delete
         db_user.deleted_at = datetime.utcnow()
         db_user.updated_at = datetime.utcnow()
         db_user.updated_by = deleted_by

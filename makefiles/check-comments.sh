@@ -28,27 +28,166 @@ cleanup() {
 }
 trap cleanup EXIT
 
-# Function to extract comments from different file types
+# Function to extract ONLY comments from different file types (ignoring code content)
 extract_comments() {
     local file="$1"
     local ext="${file##*.}"
 
     case "$ext" in
         "go")
-            # Extract Go comments (// and /* */)
-            grep -n '^\s*//\|^\s*/\*\|^\s*\*' "$file" | sed 's/^\([0-9]*\):\s*\/\/\s*/\1: /' | sed 's/^\([0-9]*\):\s*\/\*\s*/\1: /' | sed 's/^\([0-9]*\):\s*\*\s*/\1: /' || true
+            # Extract Go comments more precisely - only comment lines, not code with Chinese
+            python3 - "$file" << 'EOF'
+import sys
+import re
+
+file_path = sys.argv[1] if len(sys.argv) > 1 else '/dev/stdin'
+try:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    for i, line in enumerate(lines, 1):
+        stripped = line.strip()
+
+        # Single line comment //
+        if re.match(r'^\s*//', line):
+            comment_content = re.sub(r'^\s*//\s*', '', line).strip()
+            if comment_content:
+                print(f"{i}: {comment_content}")
+
+        # Multi-line comment start /*
+        elif re.match(r'^\s*/\*', line):
+            comment_content = re.sub(r'^\s*/\*\s*', '', line).strip()
+            comment_content = re.sub(r'\*/\s*$', '', comment_content).strip()
+            if comment_content:
+                print(f"{i}: {comment_content}")
+
+        # Multi-line comment continuation *
+        elif re.match(r'^\s*\*[^/]', line):
+            comment_content = re.sub(r'^\s*\*\s*', '', line).strip()
+            if comment_content:
+                print(f"{i}: {comment_content}")
+
+except Exception as e:
+    pass
+EOF
             ;;
         "java")
-            # Extract Java comments (// and /* */ and javadoc /** */)
-            grep -n '^\s*//\|^\s*/\*\|^\s*\*' "$file" | sed 's/^\([0-9]*\):\s*\/\/\s*/\1: /' | sed 's/^\([0-9]*\):\s*\/\*\s*/\1: /' | sed 's/^\([0-9]*\):\s*\*\s*/\1: /' || true
+            # Extract Java comments and annotation messages precisely
+            python3 - "$file" << 'EOF'
+import sys
+import re
+
+file_path = sys.argv[1] if len(sys.argv) > 1 else '/dev/stdin'
+try:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    for i, line in enumerate(lines, 1):
+        stripped = line.strip()
+
+        # Single line comment //
+        if re.match(r'^\s*//', line):
+            comment_content = re.sub(r'^\s*//\s*', '', line).strip()
+            if comment_content:
+                print(f"{i}: {comment_content}")
+
+        # Multi-line comment /* or javadoc /**
+        elif re.match(r'^\s*/\*', line):
+            comment_content = re.sub(r'^\s*/\*+\s*', '', line).strip()
+            comment_content = re.sub(r'\*/\s*$', '', comment_content).strip()
+            if comment_content:
+                print(f"{i}: {comment_content}")
+
+        # Multi-line comment continuation *
+        elif re.match(r'^\s*\*[^/]', line):
+            comment_content = re.sub(r'^\s*\*\s*', '', line).strip()
+            if comment_content:
+                print(f"{i}: {comment_content}")
+
+        # Check annotation message parameters (validation messages should be English)
+        elif 'message' in line and re.search(r'message\s*=\s*"[^"]*"', line):
+            match = re.search(r'message\s*=\s*"([^"]*)"', line)
+            if match:
+                message_content = match.group(1)
+                print(f"{i}: {message_content}")
+
+except Exception as e:
+    pass
+EOF
             ;;
         "py")
-            # Extract Python comments (# and """ docstrings)
-            grep -n '^\s*#\|^\s*"""' "$file" | sed 's/^\([0-9]*\):\s*#\s*/\1: /' | sed 's/^\([0-9]*\):\s*"""\s*/\1: /' || true
+            # Extract Python comments and docstrings precisely
+            python3 - "$file" << 'EOF'
+import sys
+import re
+import ast
+
+file_path = sys.argv[1] if len(sys.argv) > 1 else '/dev/stdin'
+try:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+        lines = content.split('\n')
+
+    for i, line in enumerate(lines, 1):
+        # Single line comments #
+        if re.match(r'^\s*#', line):
+            comment_content = re.sub(r'^\s*#\s*', '', line).strip()
+            if comment_content:
+                print(f"{i}: {comment_content}")
+
+        # Docstrings (only at start of line or after def/class)
+        elif '"""' in line:
+            # Extract content within triple quotes
+            matches = re.findall(r'"""([^"]*(?:"[^"]*"[^"]*)*)"""', line)
+            for match in matches:
+                if match.strip():
+                    print(f"{i}: {match.strip()}")
+
+        # Check Pydantic description fields (should be English)
+        elif 'description=' in line and re.search(r'description\s*=\s*"[^"]*"', line):
+            match = re.search(r'description\s*=\s*"([^"]*)"', line)
+            if match:
+                desc_content = match.group(1)
+                print(f"{i}: {desc_content}")
+
+except Exception as e:
+    pass
+EOF
             ;;
         "ts"|"tsx"|"js"|"jsx")
-            # Extract TypeScript/JavaScript comments (// and /* */)
-            grep -n '^\s*//\|^\s*/\*\|^\s*\*' "$file" | sed 's/^\([0-9]*\):\s*\/\/\s*/\1: /' | sed 's/^\([0-9]*\):\s*\/\*\s*/\1: /' | sed 's/^\([0-9]*\):\s*\*\s*/\1: /' || true
+            # Extract TypeScript/JavaScript comments precisely
+            python3 - "$file" << 'EOF'
+import sys
+import re
+
+file_path = sys.argv[1] if len(sys.argv) > 1 else '/dev/stdin'
+try:
+    with open(file_path, 'r', encoding='utf-8') as f:
+        lines = f.readlines()
+
+    for i, line in enumerate(lines, 1):
+        # Single line comment //
+        if re.match(r'^\s*//', line):
+            comment_content = re.sub(r'^\s*//\s*', '', line).strip()
+            if comment_content:
+                print(f"{i}: {comment_content}")
+
+        # Multi-line comment start /*
+        elif re.match(r'^\s*/\*', line):
+            comment_content = re.sub(r'^\s*/\*\s*', '', line).strip()
+            comment_content = re.sub(r'\*/\s*$', '', comment_content).strip()
+            if comment_content:
+                print(f"{i}: {comment_content}")
+
+        # Multi-line comment continuation *
+        elif re.match(r'^\s*\*[^/]', line):
+            comment_content = re.sub(r'^\s*\*\s*', '', line).strip()
+            if comment_content:
+                print(f"{i}: {comment_content}")
+
+except Exception as e:
+    pass
+EOF
             ;;
         *)
             echo "Unsupported file type: $ext" >&2

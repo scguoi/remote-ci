@@ -1,8 +1,8 @@
 /**
- * 工具函数集合
+ * Utility function collection
  */
 
-// 用户类型定义
+// User type definition
 interface User {
   id: number;
   name: string;
@@ -13,25 +13,25 @@ interface User {
   role: 'admin' | 'moderator' | 'user';
 }
 
-// 处理后的用户类型
+// Processed user type
 interface ProcessedUser extends User {
   status: string;
 }
 
-// 登录凭证类型
+// Login credentials type
 export interface LoginCredentials {
   username: string;
   password: string;
   rememberMe: boolean;
 }
 
-// 表单验证错误类型
+// Form validation error type
 export interface ValidationErrors {
   username?: string;
   password?: string;
 }
 
-// 登录结果类型
+// Login result type
 export interface LoginResult {
   success: boolean;
   message: string;
@@ -39,9 +39,9 @@ export interface LoginResult {
 }
 
 /**
- * 处理用户数据
- * @param user 用户对象
- * @returns 处理后的用户对象
+ * Process user data
+ * @param user User object
+ * @returns Processed user object
  */
 export function processUserData(user: User): ProcessedUser {
   const status = determineUserStatus(user);
@@ -49,9 +49,9 @@ export function processUserData(user: User): ProcessedUser {
 }
 
 /**
- * 确定用户状态
- * @param user 用户对象
- * @returns 用户状态字符串
+ * Determine user status
+ * @param user User object
+ * @returns User status string
  */
 function determineUserStatus(user: User): string {
   if (user.age <= 18) return 'underage';
@@ -66,60 +66,60 @@ function determineUserStatus(user: User): string {
 }
 
 /**
- * 验证字符串是否有效
- * @param value 要验证的值
- * @returns 是否为有效字符串
+ * Validate if string is valid
+ * @param value Value to validate
+ * @returns Whether it is a valid string
  */
 export function isValidString(value: unknown): value is string {
   return typeof value === 'string' && value.length > 0;
 }
 
 /**
- * 验证用户名
- * @param username 用户名
- * @returns 验证错误信息，无错误返回空字符串
+ * Validate username
+ * @param username Username
+ * @returns Validation error message, empty string if no error
  */
 export function validateUsername(username: string): string {
   if (!username.trim()) {
-    return '请输入用户名';
+    return 'Please enter username';
   }
   if (username.length < 3) {
-    return '用户名至少需要3个字符';
+    return 'Username must be at least 3 characters';
   }
   if (username.length > 20) {
-    return '用户名不能超过20个字符';
+    return 'Username cannot exceed 20 characters';
   }
   if (!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(username)) {
-    return '用户名只能包含字母、数字、下划线和中文字符';
+    return 'Username can only contain letters, numbers, underscores and Chinese characters';
   }
   return '';
 }
 
 /**
- * 验证密码
- * @param password 密码
- * @returns 验证错误信息，无错误返回空字符串
+ * Validate password
+ * @param password Password
+ * @returns Validation error message, empty string if no error
  */
 export function validatePassword(password: string): string {
   if (!password) {
-    return '请输入密码';
+    return 'Please enter password';
   }
   if (password.length < 6) {
-    return '密码至少需要6个字符';
+    return 'Password must be at least 6 characters';
   }
   if (password.length > 50) {
-    return '密码不能超过50个字符';
+    return 'Password cannot exceed 50 characters';
   }
   if (!/^(?=.*[a-zA-Z])(?=.*\d)/.test(password)) {
-    return '密码必须包含至少一个字母和一个数字';
+    return 'Password must contain at least one letter and one number';
   }
   return '';
 }
 
 /**
- * 验证登录表单
- * @param credentials 登录凭证
- * @returns 验证错误对象
+ * Validate login form
+ * @param credentials Login credentials
+ * @returns Validation error object
  */
 export function validateLoginForm(
   credentials: LoginCredentials
@@ -140,21 +140,21 @@ export function validateLoginForm(
 }
 
 /**
- * 模拟登录API调用
- * @param credentials 登录凭证
+ * Simulate login API call
+ * @param credentials Login credentials
  * @returns Promise<LoginResult>
  */
 export async function simulateLogin(
   credentials: LoginCredentials
 ): Promise<LoginResult> {
-  // 模拟网络延迟
+  // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  // 模拟登录逻辑 - 简单的用户名密码验证
+  // Simulate login logic - simple username password verification
   const validUsers = [
     { username: 'admin', password: 'admin123', role: 'admin' as const },
     { username: 'user', password: 'user123', role: 'user' as const },
-    { username: '测试用户', password: 'test123', role: 'user' as const },
+    { username: 'testuser', password: 'test123', role: 'user' as const },
   ];
 
   const user = validUsers.find(
@@ -175,26 +175,26 @@ export async function simulateLogin(
 
     return {
       success: true,
-      message: '登录成功！',
+      message: 'Login successful!',
       user: loginUser,
     };
   }
 
   return {
     success: false,
-    message: '用户名或密码错误',
+    message: 'Invalid username or password',
   };
 }
 
 /**
- * 本地存储工具 - 记住我功能
+ * Local storage utility - remember me functionality
  */
 export const LocalStorageHelper = {
   setRememberMe: (username: string): void => {
     try {
       localStorage.setItem('rememberedUsername', username);
     } catch (error) {
-      console.warn('无法保存记住我设置:', error);
+      console.warn('Unable to save remember me setting:', error);
     }
   },
 
@@ -202,7 +202,7 @@ export const LocalStorageHelper = {
     try {
       return localStorage.getItem('rememberedUsername') || '';
     } catch (error) {
-      console.warn('无法获取记住我设置:', error);
+      console.warn('Unable to get remember me setting:', error);
       return '';
     }
   },
@@ -211,15 +211,15 @@ export const LocalStorageHelper = {
     try {
       localStorage.removeItem('rememberedUsername');
     } catch (error) {
-      console.warn('无法清除记住我设置:', error);
+      console.warn('Unable to clear remember me setting:', error);
     }
   },
 };
 
 /**
- * 处理可能为null的数据
- * @param data 可能为null的数据
- * @returns 处理后的字符串
+ * Handle potentially null data
+ * @param data Potentially null data
+ * @returns Processed string
  */
 export function processData(data: string | null): string {
   if (isValidString(data)) {
@@ -229,27 +229,27 @@ export function processData(data: string | null): string {
 }
 
 /**
- * 使用可选链和空值合并处理数据
- * @param data 可能为null的数据
- * @returns 处理后的字符串
+ * Handle data using optional chaining and nullish coalescing
+ * @param data Potentially null data
+ * @returns Processed string
  */
 export function processDataSafe(data: string | null): string {
   return data?.toUpperCase() ?? '';
 }
 
 /**
- * 泛型数据处理函数
- * @param data 泛型数据
- * @returns 处理后的数据
+ * Generic data processing function
+ * @param data Generic data
+ * @returns Processed data
  */
 export function handleData<T>(data: T): T {
   return data;
 }
 
 /**
- * 使用联合类型处理数据
- * @param data 联合类型数据
- * @returns 处理后的字符串
+ * Handle data using union types
+ * @param data Union type data
+ * @returns Processed string
  */
 export function handleUnionData(data: string | number | boolean): string {
   if (typeof data === 'string') {

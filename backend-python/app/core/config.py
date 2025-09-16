@@ -1,4 +1,4 @@
-"""应用配置管理."""
+"""Application configuration management."""
 
 import os
 from typing import List
@@ -8,45 +8,50 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """应用配置类."""
+    """Application settings class."""
 
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", case_sensitive=False
     )
 
-    # 服务配置
-    port: int = Field(8000, description="服务端口")
-    host: str = Field("127.0.0.1", description="服务地址")
+    # Server configuration
+    port: int = Field(8000, description="Service port")
+    host: str = Field("127.0.0.1", description="Service host")
 
-    # 数据库配置
+    # Database configuration
     database_url: str = Field(
         "mysql+pymysql://user:password@localhost:3306/demo?charset=utf8mb4",
-        description="数据库连接URL",
+        description="Database connection URL",
     )
 
-    # JWT配置
-    secret_key: str = Field("your-secret-key", description="JWT密钥")
-    algorithm: str = Field("HS256", description="JWT算法")
-    access_token_expire_minutes: int = Field(30, description="令牌过期时间（分钟）")
+    # JWT configuration
+    secret_key: str = Field("your-secret-key", description="JWT secret key")
+    algorithm: str = Field("HS256", description="JWT algorithm")
+    access_token_expire_minutes: int = Field(
+        30, description="Token expiration time (minutes)"
+    )
 
-    # 日志配置
-    log_level: str = Field("INFO", description="日志级别")
+    # Logging configuration
+    log_level: str = Field("INFO", description="Log level")
 
-    # CORS配置
+    # CORS configuration
     allowed_origins: List[str] = Field(
-        ["http://localhost:3000", "http://localhost:8080"], description="允许的CORS来源"
+        ["http://localhost:3000", "http://localhost:8080"],
+        description="Allowed CORS origins",
     )
 
-    # 项目信息
-    project_name: str = Field("Python User API", description="项目名称")
-    version: str = Field("1.0.0", description="项目版本")
-    description: str = Field("FastAPI用户管理服务", description="项目描述")
+    # Project information
+    project_name: str = Field("Python User API", description="Project name")
+    version: str = Field("1.0.0", description="Project version")
+    description: str = Field(
+        "FastAPI user management service", description="Project description"
+    )
 
     @property
     def is_production(self) -> bool:
-        """检查是否为生产环境."""
+        """Check if it is production environment."""
         return os.getenv("ENV", "development").lower() == "production"
 
 
-# 全局配置实例
+# Global configuration instance
 settings = Settings()

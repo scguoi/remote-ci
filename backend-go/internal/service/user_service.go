@@ -10,8 +10,8 @@ import (
 	"github.com/scguoi/remote-ci/backend-go/internal/dao"
 )
 
-// UserService 用户服务接口
-// 对应Java项目的UserService
+// UserService defines the user service interface
+// Corresponds to UserService in the Java project
 type UserService interface {
 	CreateUser(ctx context.Context, req *common.CreateUserRequest, createdBy *string) (*common.UserResponse, error)
 	GetUserByID(ctx context.Context, id int64) (*common.UserResponse, error)
@@ -29,26 +29,26 @@ type UserService interface {
 	CheckEmailExists(ctx context.Context, email string, excludeID *int64) (bool, error)
 }
 
-// userServiceImpl UserService的实现
-// 对应Java项目的UserServiceImpl
+// userServiceImpl implements the UserService interface
+// Corresponds to UserServiceImpl in the Java project
 type userServiceImpl struct {
 	userDAO dao.UserDAO
 }
 
-// NewUserService 创建UserService实例
+// NewUserService creates a new UserService instance
 func NewUserService(userDAO dao.UserDAO) UserService {
 	return &userServiceImpl{
 		userDAO: userDAO,
 	}
 }
 
-// CreateUser 创建用户
+// CreateUser creates a new user
 func (s *userServiceImpl) CreateUser(
 	ctx context.Context,
 	req *common.CreateUserRequest,
 	createdBy *string,
 ) (*common.UserResponse, error) {
-	// 验证用户名唯一性
+	// Validate username uniqueness
 	exists, err := s.userDAO.ExistsByUsername(ctx, req.Username, nil)
 	if err != nil {
 		return nil, err
@@ -57,7 +57,7 @@ func (s *userServiceImpl) CreateUser(
 		return nil, common.NewUsernameExistsError(req.Username)
 	}
 
-	// 验证邮箱唯一性
+	// Validate email uniqueness
 	exists, err = s.userDAO.ExistsByEmail(ctx, req.Email, nil)
 	if err != nil {
 		return nil, err
@@ -66,13 +66,13 @@ func (s *userServiceImpl) CreateUser(
 		return nil, common.NewEmailExistsError(req.Email)
 	}
 
-	// 加密密码
+	// Hash password
 	passwordHash, err := s.hashPassword(req.Password)
 	if err != nil {
 		return nil, common.NewInternalError("Failed to hash password", err)
 	}
 
-	// 创建用户实体
+	// Create user entity
 	now := time.Now()
 	user := &common.User{
 		Username:     req.Username,
@@ -80,14 +80,14 @@ func (s *userServiceImpl) CreateUser(
 		FullName:     req.FullName,
 		PasswordHash: passwordHash,
 		PhoneNumber:  req.PhoneNumber,
-		IsActive:     true, // 默认激活
+		IsActive:     true, // Default to active
 		CreatedAt:    now,
 		UpdatedAt:    now,
 		CreatedBy:    createdBy,
 		UpdatedBy:    createdBy,
 	}
 
-	// 保存用户
+	// Save user
 	err = s.userDAO.Create(ctx, user)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (s *userServiceImpl) CreateUser(
 	return user.ToResponse(), nil
 }
 
-// GetUserByID 根据ID获取用户
+// GetUserByID retrieves a user by ID
 func (s *userServiceImpl) GetUserByID(ctx context.Context, id int64) (*common.UserResponse, error) {
 	user, err := s.userDAO.GetByID(ctx, id)
 	if err != nil {
@@ -106,7 +106,7 @@ func (s *userServiceImpl) GetUserByID(ctx context.Context, id int64) (*common.Us
 	return user.ToResponse(), nil
 }
 
-// GetUserByUsername 根据用户名获取用户
+// GetUserByUsername retrieves a user by username
 func (s *userServiceImpl) GetUserByUsername(ctx context.Context, username string) (*common.UserResponse, error) {
 	user, err := s.userDAO.GetByUsername(ctx, username)
 	if err != nil {
@@ -116,7 +116,7 @@ func (s *userServiceImpl) GetUserByUsername(ctx context.Context, username string
 	return user.ToResponse(), nil
 }
 
-// GetUserByEmail 根据邮箱获取用户
+// GetUserByEmail retrieves a user by email
 func (s *userServiceImpl) GetUserByEmail(ctx context.Context, email string) (*common.UserResponse, error) {
 	user, err := s.userDAO.GetByEmail(ctx, email)
 	if err != nil {
@@ -126,7 +126,7 @@ func (s *userServiceImpl) GetUserByEmail(ctx context.Context, email string) (*co
 	return user.ToResponse(), nil
 }
 
-// UpdateUser 更新用户
+// UpdateUser updates an existing user
 func (s *userServiceImpl) UpdateUser(
 	ctx context.Context,
 	id int64,
@@ -196,17 +196,17 @@ func (s *userServiceImpl) applyAudit(updatedBy *string, user *common.User) {
 	user.UpdatedBy = updatedBy
 }
 
-// DeleteUser 删除用户（软删除）
+// DeleteUser soft deletes a user
 func (s *userServiceImpl) DeleteUser(ctx context.Context, id int64, version int) error {
 	return s.userDAO.Delete(ctx, id, version)
 }
 
-// ListUsers 获取用户列表
+// ListUsers retrieves a paginated list of users
 func (s *userServiceImpl) ListUsers(
 	ctx context.Context,
 	filter *common.UserFilter,
 ) (*common.PagedResponse[*common.UserResponse], error) {
-	// 设置默认分页参数
+	// Set default pagination parameters
 	if filter.Size <= 0 {
 		filter.Size = 10
 	}
@@ -217,19 +217,19 @@ func (s *userServiceImpl) ListUsers(
 		filter.Page = 0
 	}
 
-	// 获取数据
+	// Get data
 	users, total, err := s.userDAO.List(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
 
-	// 转换为响应格式
+	// Convert to response format
 	responses := make([]*common.UserResponse, len(users))
 	for i, user := range users {
 		responses[i] = user.ToResponse()
 	}
 
-	// 计算分页信息
+	// Calculate pagination info
 	totalPages := int((total + int64(filter.Size) - 1) / int64(filter.Size))
 	if totalPages == 0 {
 		totalPages = 1
@@ -246,17 +246,17 @@ func (s *userServiceImpl) ListUsers(
 	}, nil
 }
 
-// CheckUsernameExists 检查用户名是否存在
+// CheckUsernameExists checks if a username exists
 func (s *userServiceImpl) CheckUsernameExists(ctx context.Context, username string, excludeID *int64) (bool, error) {
 	return s.userDAO.ExistsByUsername(ctx, username, excludeID)
 }
 
-// CheckEmailExists 检查邮箱是否存在
+// CheckEmailExists checks if an email exists
 func (s *userServiceImpl) CheckEmailExists(ctx context.Context, email string, excludeID *int64) (bool, error) {
 	return s.userDAO.ExistsByEmail(ctx, email, excludeID)
 }
 
-// hashPassword 密码加密
+// hashPassword encrypts a password
 func (s *userServiceImpl) hashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -265,7 +265,7 @@ func (s *userServiceImpl) hashPassword(password string) (string, error) {
 	return string(bytes), nil
 }
 
-// VerifyPassword 验证密码（用于登录验证）
+// VerifyPassword verifies a password (for login authentication)
 func (s *userServiceImpl) VerifyPassword(hashedPassword, password string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }

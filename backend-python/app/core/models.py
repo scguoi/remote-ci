@@ -1,4 +1,4 @@
-"""SQLAlchemy数据库模型定义."""
+"""SQLAlchemy database model definitions."""
 
 from datetime import datetime
 from typing import Any
@@ -10,32 +10,37 @@ Base: Any = declarative_base()
 
 
 class User(Base):
-    """用户数据库模型."""
+    """User database model."""
 
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True, comment="用户ID")
+    id = Column(Integer, primary_key=True, index=True, comment="User ID")
     username = Column(
-        String(50), unique=True, index=True, nullable=False, comment="用户名"
+        String(50), unique=True, index=True, nullable=False, comment="Username"
     )
-    email = Column(String(255), unique=True, index=True, nullable=False, comment="邮箱")
-    full_name = Column(String(100), nullable=True, comment="全名")
-    hashed_password = Column(String(255), nullable=False, comment="加密密码")
-    is_active = Column(Boolean, default=True, comment="是否激活")
+    email = Column(
+        String(255), unique=True, index=True, nullable=False, comment="Email"
+    )
+    full_name = Column(String(100), nullable=True, comment="Full name")
+    hashed_password = Column(String(255), nullable=False, comment="Hashed password")
+    is_active = Column(Boolean, default=True, comment="Is active")
 
-    # 审计字段
-    created_at = Column(DateTime, default=datetime.utcnow, comment="创建时间")
+    # Audit fields
+    created_at = Column(DateTime, default=datetime.utcnow, comment="Created at")
     updated_at = Column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, comment="更新时间"
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        comment="Updated at",
     )
-    created_by = Column(String(50), default="system", comment="创建者")
-    updated_by = Column(String(50), default="system", comment="更新者")
+    created_by = Column(String(50), default="system", comment="Created by")
+    updated_by = Column(String(50), default="system", comment="Updated by")
 
-    # 乐观锁版本控制
-    version = Column(Integer, default=1, comment="版本号")
+    # Optimistic locking version control
+    version = Column(Integer, default=1, comment="Version")
 
-    # 软删除标记
-    deleted_at = Column(DateTime, nullable=True, comment="删除时间")
+    # Soft delete marker
+    deleted_at = Column(DateTime, nullable=True, comment="Deleted at")
 
     def __repr__(self) -> str:
         return f"<User(id={self.id}, username='{self.username}', email='{self.email}')>"

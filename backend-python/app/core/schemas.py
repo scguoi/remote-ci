@@ -1,4 +1,4 @@
-"""Pydantic数据验证和序列化模式."""
+"""Pydantic data validation and serialization schemas."""
 
 from datetime import datetime
 from typing import Optional
@@ -7,77 +7,81 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class UserBase(BaseModel):
-    """用户基础模式."""
+    """User base schema."""
 
-    username: str = Field(..., min_length=3, max_length=50, description="用户名")
-    email: EmailStr = Field(..., description="邮箱地址")
-    full_name: Optional[str] = Field(None, max_length=100, description="全名")
-    is_active: bool = Field(True, description="是否激活")
+    username: str = Field(..., min_length=3, max_length=50, description="Username")
+    email: EmailStr = Field(..., description="Email address")
+    full_name: Optional[str] = Field(None, max_length=100, description="Full name")
+    is_active: bool = Field(True, description="Is active")
 
 
 class UserCreate(UserBase):
-    """创建用户模式."""
+    """Create user schema."""
 
-    password: str = Field(..., min_length=6, max_length=128, description="密码")
+    password: str = Field(..., min_length=6, max_length=128, description="Password")
 
 
 class UserUpdate(BaseModel):
-    """更新用户模式."""
+    """Update user schema."""
 
-    email: Optional[EmailStr] = Field(None, description="邮箱地址")
-    full_name: Optional[str] = Field(None, max_length=100, description="全名")
-    is_active: Optional[bool] = Field(None, description="是否激活")
-    version: int = Field(..., description="当前版本号（乐观锁）")
+    email: Optional[EmailStr] = Field(None, description="Email address")
+    full_name: Optional[str] = Field(None, max_length=100, description="Full name")
+    is_active: Optional[bool] = Field(None, description="Is active")
+    version: int = Field(..., description="Current version number (optimistic lock)")
 
 
 class UserInDB(UserBase):
-    """数据库用户模式."""
+    """Database user schema."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: int = Field(..., description="用户ID")
-    hashed_password: str = Field(..., description="加密密码")
-    created_at: datetime = Field(..., description="创建时间")
-    updated_at: datetime = Field(..., description="更新时间")
-    created_by: str = Field(..., description="创建者")
-    updated_by: str = Field(..., description="更新者")
-    version: int = Field(..., description="版本号")
-    deleted_at: Optional[datetime] = Field(None, description="删除时间")
+    id: int = Field(..., description="User ID")
+    hashed_password: str = Field(..., description="Hashed password")
+    created_at: datetime = Field(..., description="Created at")
+    updated_at: datetime = Field(..., description="Updated at")
+    created_by: str = Field(..., description="Created by")
+    updated_by: str = Field(..., description="Updated by")
+    version: int = Field(..., description="Version")
+    deleted_at: Optional[datetime] = Field(None, description="Deleted at")
 
 
 class UserResponse(UserBase):
-    """用户响应模式."""
+    """User response schema."""
 
     model_config = ConfigDict(from_attributes=True)
 
-    id: int = Field(..., description="用户ID")
-    created_at: datetime = Field(..., description="创建时间")
-    updated_at: datetime = Field(..., description="更新时间")
-    version: int = Field(..., description="版本号")
+    id: int = Field(..., description="User ID")
+    created_at: datetime = Field(..., description="Created at")
+    updated_at: datetime = Field(..., description="Updated at")
+    version: int = Field(..., description="Version")
 
 
 class UserListResponse(BaseModel):
-    """用户列表响应模式."""
+    """User list response schema."""
 
-    total: int = Field(..., description="总数")
-    page: int = Field(..., description="页码")
-    size: int = Field(..., description="每页大小")
-    users: list[UserResponse] = Field(..., description="用户列表")
+    total: int = Field(..., description="Total count")
+    page: int = Field(..., description="Page number")
+    size: int = Field(..., description="Page size")
+    users: list[UserResponse] = Field(..., description="User list")
 
 
 class APIResponse(BaseModel):
-    """统一API响应格式."""
+    """Unified API response format."""
 
-    success: bool = Field(..., description="是否成功")
-    message: str = Field(..., description="响应消息")
-    data: Optional[dict] = Field(default=None, description="响应数据")
-    error: Optional[str] = Field(default=None, description="错误信息")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="响应时间戳")
+    success: bool = Field(..., description="Success status")
+    message: str = Field(..., description="Response message")
+    data: Optional[dict] = Field(default=None, description="Response data")
+    error: Optional[str] = Field(default=None, description="Error information")
+    timestamp: datetime = Field(
+        default_factory=datetime.utcnow, description="Response timestamp"
+    )
 
 
 class HealthResponse(BaseModel):
-    """健康检查响应."""
+    """Health check response."""
 
-    status: str = Field(..., description="服务状态")
-    timestamp: datetime = Field(default_factory=datetime.utcnow, description="检查时间")
-    version: str = Field("1.0.0", description="服务版本")
+    status: str = Field(..., description="Service status")
+    timestamp: datetime = Field(
+        default_factory=datetime.utcnow, description="Check time"
+    )
+    version: str = Field("1.0.0", description="Service version")
