@@ -30,7 +30,7 @@ Object.defineProperty(window, 'localStorage', {
 
 // Mock console.warn to avoid warnings during tests
 const originalWarn = console.warn;
-console.warn = jest.fn();
+console.warn = jest.fn(); // Mock console for testing - this line is intentionally ignored
 
 // Reset all mocks before each test
 beforeEach((): void => {
@@ -40,5 +40,5 @@ beforeEach((): void => {
 
 // Restore console.warn after all tests
 afterAll((): void => {
-  console.warn = originalWarn;
+  console.warn = originalWarn; // Restore original console.warn
 });

@@ -68,6 +68,13 @@ export default [
       'no-var': 'error',
     },
   },
+  // Test files configuration - allow console statements
+  {
+    files: ['**/__tests__/**/*.ts', '**/*.test.ts', '**/*.spec.ts'],
+    rules: {
+      'no-console': 'off',
+    },
+  },
   {
     ignores: [
       'node_modules/',

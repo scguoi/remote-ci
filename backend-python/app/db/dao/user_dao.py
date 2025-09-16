@@ -120,7 +120,8 @@ class UserDAO:
         # Check version number (optimistic lock)
         if db_user.version != user_update.version:
             raise ValueError(
-                f"Version conflict: current version {db_user.version}, requested version {user_update.version}"
+                f"Version conflict: current version {db_user.version}, "
+                f"requested version {user_update.version}"
             )
 
         # Update fields
@@ -152,7 +153,8 @@ class UserDAO:
         # Check version number (optimistic lock)
         if db_user.version != version:
             raise ValueError(
-                f"Version conflict: current version {db_user.version}, requested version {version}"
+                f"Version conflict: current version {db_user.version}, "
+                f"requested version {version}"
             )
 
         # Soft delete

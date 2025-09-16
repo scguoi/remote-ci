@@ -194,7 +194,8 @@ export const LocalStorageHelper = {
     try {
       localStorage.setItem('rememberedUsername', username);
     } catch (error) {
-      console.warn('Unable to save remember me setting:', error);
+      // eslint-disable-next-line no-console
+      console.warn('Unable to save remember me setting:', error); // Warning for localStorage operations
     }
   },
 
@@ -202,7 +203,8 @@ export const LocalStorageHelper = {
     try {
       return localStorage.getItem('rememberedUsername') || '';
     } catch (error) {
-      console.warn('Unable to get remember me setting:', error);
+      // eslint-disable-next-line no-console
+      console.warn('Unable to get remember me setting:', error); // Warning for localStorage operations
       return '';
     }
   },
@@ -211,7 +213,8 @@ export const LocalStorageHelper = {
     try {
       localStorage.removeItem('rememberedUsername');
     } catch (error) {
-      console.warn('Unable to clear remember me setting:', error);
+      // eslint-disable-next-line no-console
+      console.warn('Unable to clear remember me setting:', error); // Warning for localStorage operations
     }
   },
 };

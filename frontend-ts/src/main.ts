@@ -127,7 +127,8 @@ class LoginForm {
       this.handleLoginFailure(
         'An error occurred during login, please try again later'
       );
-      console.error('Login error:', error);
+      // eslint-disable-next-line no-console
+      console.error('Login error:', error); // Error logging is necessary
     } finally {
       this.setLoadingState(false);
     }
@@ -300,20 +301,26 @@ class LoginForm {
 document.addEventListener('DOMContentLoaded', () => {
   try {
     new LoginForm();
-    console.log('Login form initialized successfully');
+    // eslint-disable-next-line no-console
+    console.log('Login form initialized successfully'); // Development information
 
     // Display test account info in development mode
     if (
       typeof window !== 'undefined' &&
       window.location.hostname === 'localhost'
     ) {
-      console.log('Test accounts:');
-      console.log('1. Username: admin, Password: admin123');
-      console.log('2. Username: user, Password: user123');
-      console.log('3. Username: testuser, Password: test123');
+      // eslint-disable-next-line no-console
+      console.log('Test accounts:'); // Development test information
+      // eslint-disable-next-line no-console
+      console.log('1. Username: admin, Password: admin123'); // Development test information
+      // eslint-disable-next-line no-console
+      console.log('2. Username: user, Password: user123'); // Development test information
+      // eslint-disable-next-line no-console
+      console.log('3. Username: testuser, Password: test123'); // Development test information
     }
   } catch (error) {
-    console.error('Login form initialization failed:', error);
+    // eslint-disable-next-line no-console
+    console.error('Login form initialization failed:', error); // Error logging is necessary
 
     // Display error message to user
     const errorElement = document.createElement('div');
