@@ -72,6 +72,8 @@ smart_check: ## 🔍 智能代码质量检查 (检测活跃项目)
 			typescript) echo "  - 检查TypeScript代码..." && $(MAKE) --no-print-directory check-typescript ;; \
 		esac; \
 	done
+	@echo "$(YELLOW)检查注释语言规范...$(RESET)"
+	@$(MAKE) --no-print-directory check-comments
 	@echo "$(GREEN)✅ 质量检查完成: $(ACTIVE_PROJECTS)$(RESET)"
 
 # =============================================================================

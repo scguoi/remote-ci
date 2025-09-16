@@ -14,6 +14,7 @@ include makefiles/java.mk
 include makefiles/python.mk
 include makefiles/git.mk
 include makefiles/common.mk
+include makefiles/comment-check.mk
 
 # =============================================================================
 # 核心命令声明
