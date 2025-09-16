@@ -447,6 +447,30 @@ jobs:
           echo "✅ TypeScript quality check passed"
 
   # ============================================================================
+  # Stage 4.5: Comment Language Check (Independent Job)
+  # ============================================================================
+  quality-comments:
+    name: 💬 Comment Language Check
+    runs-on: ubuntu-latest
+    needs: [detect-projects]
+    if: needs.detect-projects.outputs.active-projects != ''
+    timeout-minutes: 3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run comment language check
+        run: |
+          echo "💬 Checking comment language compliance..."
+          echo "🔍 Detected projects: ${{ needs.detect-projects.outputs.active-projects }}"
+
+          # Make script executable and run
+          chmod +x makefiles/check-comments.sh
+          ./makefiles/check-comments.sh
+
+          echo "✅ Comment language check passed"
+
+  # ============================================================================
   # Stage 5: Tests (4 Parallel Jobs)
   # ============================================================================
   test-go:
@@ -569,7 +593,7 @@ jobs:
   summary:
     name: 📊 Pipeline Summary
     runs-on: ubuntu-latest
-    needs: 
+    needs:
       - detect-projects
       - setup-go
       - setup-java
@@ -583,6 +607,7 @@ jobs:
       - quality-java
       - quality-python
       - quality-typescript
+      - quality-comments
       - test-go
       - test-java
       - test-python
@@ -617,6 +642,7 @@ jobs:
           echo "  ☕ Java Quality: ${{ needs.quality-java.result }}"
           echo "  🐍 Python Quality: ${{ needs.quality-python.result }}"
           echo "  🟦 TypeScript Quality: ${{ needs.quality-typescript.result }}"
+          echo "  💬 Comment Language: ${{ needs.quality-comments.result }}"
           echo ""
           
           echo "🧪 Test Results:"
@@ -666,18 +692,23 @@ jobs:
             [[ "${{ needs.test-typescript.result }}" == "success" ]] && TEST_SUCCESS=$((TEST_SUCCESS + 1))
           fi
           
+          # Check comment check success
+          COMMENT_SUCCESS=0
+          [[ "${{ needs.quality-comments.result }}" == "success" ]] && COMMENT_SUCCESS=1
+
           echo "📊 Stage Success Rates:"
           echo "  🛠️ Setup: $SETUP_SUCCESS/$TOTAL_PROJECTS"
           echo "  🎨 Format: $FORMAT_SUCCESS/$TOTAL_PROJECTS"
-          echo "  🔍 Quality: $QUALITY_SUCCESS/$TOTAL_PROJECTS" 
+          echo "  🔍 Quality: $QUALITY_SUCCESS/$TOTAL_PROJECTS"
+          echo "  💬 Comments: $COMMENT_SUCCESS/1"
           echo "  🧪 Tests: $TEST_SUCCESS/$TOTAL_PROJECTS"
           echo ""
-          
-          TOTAL_CHECKS=$((SETUP_SUCCESS + FORMAT_SUCCESS + QUALITY_SUCCESS + TEST_SUCCESS))
-          EXPECTED_CHECKS=$((TOTAL_PROJECTS * 4))
-          
+
+          TOTAL_CHECKS=$((SETUP_SUCCESS + FORMAT_SUCCESS + QUALITY_SUCCESS + TEST_SUCCESS + COMMENT_SUCCESS))
+          EXPECTED_CHECKS=$((TOTAL_PROJECTS * 4 + 1))
+
           echo "🎯 Overall Success: $TOTAL_CHECKS/$EXPECTED_CHECKS checks passed"
-          
+
           if [[ "${{ needs.detect-projects.result }}" == "success" && "$TOTAL_CHECKS" == "$EXPECTED_CHECKS" ]]; then
             echo "✅ 🎉 All pipelines completed successfully!"
             echo "💡 Fully parallel execution completed - ready for review and merge"
