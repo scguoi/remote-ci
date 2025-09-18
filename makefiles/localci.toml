@@ -1,0 +1,23 @@
+[meta]
+version = 1
+
+[[go.apps]]
+name = "go-main"
+dir = "backend-go"
+enabled = true
+
+[[java.apps]]
+name = "user-web"
+dir = "backend-java/user-web"
+enabled = true
+
+[[python.apps]]
+name = "python-main"
+dir = "backend-python"
+enabled = true
+
+[[typescript.apps]]
+name = "frontend"
+dir = "frontend-ts"
+enabled = true
+

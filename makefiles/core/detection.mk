@@ -9,6 +9,9 @@ YELLOW := \033[33m
 BLUE := \033[34m
 RESET := \033[0m
 
+# LocalCI config path (local override, then default template)
+LOCALCI_CONFIG := $(shell if [ -f .localci.toml ]; then echo .localci.toml; elif [ -f makefiles/localci.toml ]; then echo makefiles/localci.toml; fi)
+
 # 检测活跃的项目类型 (基于实际文件存在)
 define detect_active_projects
 	$(shell \
@@ -33,8 +36,12 @@ define detect_current_context
 	)
 endef
 
-# 智能变量
-ACTIVE_PROJECTS := $(detect_active_projects)
+# 智能变量（如存在 localci 配置，则以配置为准）
+ifeq ($(strip $(LOCALCI_CONFIG)),)
+  ACTIVE_PROJECTS := $(detect_active_projects)
+else
+  ACTIVE_PROJECTS := $(shell scripts/parse_localci.sh langs $(LOCALCI_CONFIG))
+endif
 CURRENT_CONTEXT := $(detect_current_context)
 PROJECT_COUNT := $(shell echo $(ACTIVE_PROJECTS) | wc -w | tr -d ' ')
 
