@@ -22,7 +22,7 @@ smart_setup: ## 🛠️ 智能环境设置 (工具+钩子+分支策略)
 	@$(MAKE) --no-print-directory branch-setup
 	@echo ""
 	@echo "$(GREEN)✅ 智能环境设置完成!$(RESET)"
-	@echo "$(BLUE)可用的核心命令:$(RESET) setup format check test build dev push clean"
+	@echo "$(BLUE)可用的核心命令:$(RESET) setup format check test build push clean"
 
 # 智能工具安装
 smart_install_tools:
@@ -114,37 +114,7 @@ smart_build: ## 📦 智能项目构建 (检测活跃项目)
 	done
 	@echo "$(GREEN)✅ 构建完成: $(ACTIVE_PROJECTS)$(RESET)"
 
-# =============================================================================
-# 智能开发服务器 - dev
-# =============================================================================
-smart_dev: ## 🚀 智能开发服务器 (根据上下文启动)
-	@echo "$(BLUE)🚀 智能开发服务器启动$(RESET)"
-	@echo "$(YELLOW)当前上下文: $(CURRENT_CONTEXT)$(RESET)"
-	@case $(CURRENT_CONTEXT) in \
-		go) echo "  - 启动Go服务..." && cd backend-go && go run cmd/main.go ;; \
-		java) echo "  - 启动Java Spring Boot..." && cd backend-java && mvn spring-boot:run ;; \
-		python) echo "  - 启动Python FastAPI..." && cd backend-python && python main.py ;; \
-		typescript) echo "  - 启动TypeScript开发服务器..." && cd frontend-ts && npm run dev ;; \
-		all) echo "$(YELLOW)请在具体项目目录中运行 'make dev'，或指定项目:$(RESET)"; \
-			echo "  make dev-go       - 启动Go服务"; \
-			echo "  make dev-java     - 启动Java服务"; \
-			echo "  make dev-python   - 启动Python服务"; \
-			echo "  make dev-ts       - 启动TypeScript开发服务器"; \
-			;; \
-	esac
-
-# 特定项目的dev命令 (兼容性)
-dev-go:
-	@cd backend-go && go run cmd/main.go
-
-dev-java:  
-	@cd backend-java && mvn spring-boot:run
-
-dev-python:
-	@cd backend-python && python main.py
-
-dev-ts:
-	@cd frontend-ts && npm run dev
+# (dev 系列命令已移除)
 
 # =============================================================================
 # 智能推送 - push

@@ -19,7 +19,7 @@ include makefiles/comment-check.mk
 # =============================================================================
 # 核心命令声明
 # =============================================================================
-.PHONY: help setup format check test build dev push clean status info lint fix ci hooks enable-legacy
+.PHONY: help setup format check test build push clean status info lint fix ci hooks enable-legacy
 
 # =============================================================================
 # 第一层：日常核心命令 (8个) - 你只需要记住这些！
@@ -37,7 +37,6 @@ help: ## 📚 显示帮助信息和项目状态
 	@echo "  $(GREEN)make check$(RESET)     🔍  质量检查 (智能检测: $(ACTIVE_PROJECTS))"  
 	@echo "  $(GREEN)make test$(RESET)      🧪  运行测试 (智能检测: $(ACTIVE_PROJECTS))"
 	@echo "  $(GREEN)make build$(RESET)     📦  构建项目 (智能检测: $(ACTIVE_PROJECTS))"
-	@echo "  $(GREEN)make dev$(RESET)       🚀  启动开发服务器 (上下文: $(CURRENT_CONTEXT))"
 	@echo "  $(GREEN)make push$(RESET)      📤  安全推送到远程 (预检查)"
 	@echo "  $(GREEN)make clean$(RESET)     🧹  清理构建产物"
 	@echo ""
@@ -55,7 +54,7 @@ help: ## 📚 显示帮助信息和项目状态
 	@if [ "$(IS_MULTI_PROJECT)" = "true" ]; then \
 		echo "$(YELLOW)💡 检测到多项目环境，所有命令将智能处理多个项目$(RESET)"; \
 	else \
-		echo "$(YELLOW)💡 单项目环境，可在子目录中使用 'make dev' 进行上下文切换$(RESET)"; \
+		echo "$(YELLOW)💡 单项目环境，请在对应子目录中运行常用命令 (setup/format/check/test/build)$(RESET)"; \
 	fi
 
 # 核心工作流命令 - 直接调用智能实现
@@ -68,8 +67,6 @@ check: smart_check ## 🔍 智能代码质量检查 (检测活跃项目)
 test: smart_test ## 🧪 智能测试运行 (检测活跃项目)
 
 build: smart_build ## 📦 智能项目构建 (检测活跃项目)
-
-dev: smart_dev ## 🚀 智能开发服务器 (根据上下文启动)
 
 push: smart_push ## 📤 智能安全推送 (分支检查+质量检查)
 

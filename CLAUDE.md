@@ -45,14 +45,13 @@ remote-ci/
 
 ## Essential Commands - 新的智能命令体系
 
-### 🚀 日常核心命令 (8个) - 零学习成本
+### 🚀 日常核心命令 (7个) - 零学习成本
 ```bash
 make setup      # 🛠️ 一次性环境搭建 (工具+钩子+分支策略)
 make format     # ✨ 智能格式化 (自动检测所有项目)
 make check      # 🔍 智能质量检查 (自动检测所有项目)
 make test       # 🧪 智能测试运行 (自动检测所有项目)
 make build      # 📦 智能项目构建 (自动检测所有项目)
-make dev        # 🚀 智能开发服务器 (根据上下文启动)
 make push       # 📤 安全推送 (预检查+分支验证)
 make clean      # 🧹 智能清理构建产物
 ```
@@ -91,12 +90,12 @@ $ make status
 多项目环境: true
 ```
 
-### 上下文感知开发服务器
+### 本地运行服务
 ```bash
-cd backend-go && make dev      # 启动Go服务
-cd frontend-ts && make dev     # 启动TypeScript开发服务器
-cd backend-python && make dev  # 启动Python FastAPI服务
-make dev                       # 在根目录显示选项菜单
+cd backend-go && go run cmd/main.go         # 启动Go服务
+cd frontend-ts && npm run dev               # 启动TypeScript开发服务器
+cd backend-python && python main.py         # 启动Python FastAPI服务
+cd backend-java && mvn spring-boot:run      # 启动Java服务
 ```
 
 ### 智能批量操作

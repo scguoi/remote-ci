@@ -16,7 +16,7 @@
 - **🧠 智能检测**: 自动识别项目类型，无需手动配置
 - **🎯 大幅简化**: 95个命令精简为15个核心命令，减少84%认知负担  
 - **🔄 完美兼容**: 所有旧命令依然可用，平滑迁移
-- **⚡ 零学习成本**: 只需记住8个日常命令
+- **⚡ 零学习成本**: 只需记住7个日常命令
 - **🛠️ 统一工作流**: 一套命令搞定所有语言的格式化、检查、测试、构建
 - **🐳 容器化支持**: 完整的Docker部署方案，一键启动所有服务
 - **🔧 现代技术栈**: Java 21、Python 3.11、Go 1.21、TypeScript 5.0
@@ -77,7 +77,7 @@ cd docker
 
 ## 📋 完整命令参考
 
-### 🏆 日常核心命令 (8个) - 零学习成本
+### 🏆 日常核心命令 (7个) - 零学习成本
 
 | 命令 | 功能 | 智能特性 |
 |------|------|----------|
@@ -86,7 +86,6 @@ cd docker
 | `make check` | 质量检查 | 自动运行所有4种语言的质量检查 |
 | `make test` | 运行测试 | 自动运行Go/Java/Python测试 |
 | `make build` | 项目构建 | 智能构建Go和Java项目 |
-| `make dev` | 开发服务器 | 根据当前目录上下文启动对应服务 |
 | `make push` | 安全推送 | 预检查+分支验证+自动推送 |
 | `make clean` | 清理构建产物 | 清理所有语言的构建缓存 |
 
@@ -123,13 +122,13 @@ Python项目: ✅ backend-python/ (FastAPI + SQLAlchemy)
 TypeScript项目: ✅ frontend-ts/ (Vite + ESLint)
 ```
 
-### 上下文感知的开发服务器
+### 本地运行各服务
 ```bash
-# 在不同目录中运行相同命令，启动不同服务
-cd backend-go && make dev      # → 启动Go Gin服务 (端口8080)
-cd backend-java && make dev    # → 启动Spring Boot (端口8080)  
-cd backend-python && make dev  # → 启动FastAPI服务 (端口8000)
-cd frontend-ts && make dev     # → 启动Vite开发服务器 (端口5173)
+# 在各自项目目录运行原生命令
+cd backend-go && go run cmd/main.go           # → Go Gin服务 (端口8080)
+cd backend-java && mvn spring-boot:run        # → Spring Boot (端口8081)
+cd backend-python && python main.py           # → FastAPI服务 (端口8000)
+cd frontend-ts && npm run dev                 # → Vite开发服务器 (端口5173)
 ```
 
 ### 智能批量操作  
@@ -268,7 +267,7 @@ make check-tools-go # 检查特定语言工具状态
 | 指标 | 优化前 | 优化后 | 改进 |
 |------|--------|--------|------|
 | **命令数量** | 95个复杂命令 | 15个智能命令 | ⬇️ 84% |
-| **学习成本** | 高 (需记住多个命令) | 零 (仅8个日常命令) | ⬇️ 90% |
+| **学习成本** | 高 (需记住多个命令) | 零 (仅7个日常命令) | ⬇️ 90% |
 | **使用复杂度** | `make fmt-go fmt-java fmt-python fmt-typescript` | `make format` | ⬇️ 75% |
 | **认知负担** | 重 (每种语言不同命令) | 轻 (统一智能命令) | ⬇️ 80% |
 | **上手时间** | 1-2小时学习 | 5分钟上手 | ⬇️ 95% |
@@ -360,7 +359,7 @@ docker: add multi-arch build support
 
 ## 🎉 享受零学习成本的现代化多语言开发体验！
 
-**本地开发** → `make setup && make dev`  
+**本地开发** → `make setup && make build`  
 **容器部署** → `cd docker && ./docker-dev.sh start`  
 **CI/CD** → `make ci`
 
