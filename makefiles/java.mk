@@ -25,7 +25,7 @@ JAVA_APP_PORT := 8080
 # =============================================================================
 
 install-tools-java: ## Install Java development tools
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Installing Java tools...$(RESET)"; \
 		echo "$(GREEN)Java tools ready (using Maven plugins)$(RESET)"; \
 		echo "  - Spotless: Code formatting with Google Java Format"; \
@@ -37,7 +37,7 @@ install-tools-java: ## Install Java development tools
 	fi
 
 check-tools-java: ## Check Java development tools
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Checking Java tools...$(RESET)"; \
 		command -v java >/dev/null 2>&1 || (echo "$(RED)Java is not installed$(RESET)" && exit 1); \
 		command -v $(MVN) >/dev/null 2>&1 || (echo "$(RED)Maven is not installed$(RESET)" && exit 1); \
@@ -49,7 +49,7 @@ check-tools-java: ## Check Java development tools
 # =============================================================================
 
 fmt-java: ## Format Java code
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Formatting Java code...$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) spotless:apply; \
 		echo "$(GREEN)Java code formatted$(RESET)"; \
@@ -62,7 +62,7 @@ fmt-java: ## Format Java code
 # =============================================================================
 
 check-java: ## Check Java code quality
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Checking Java code quality...$(RESET)"; \
 		cd $(JAVA_DIR) && \
 		echo "$(YELLOW)Compiling project...$(RESET)" && \
@@ -82,7 +82,7 @@ check-java: ## Check Java code quality
 info-java: ## Show Java project information
 	@echo "$(BLUE)Java Project Information:$(RESET)"
 	@echo "  Java files: $(words $(JAVA_FILES))"
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "  Java version: $$(java -version 2>&1 | head -n 1)"; \
 		echo "  Maven version: $$(mvn --version | head -n 1)"; \
 	fi
@@ -90,7 +90,7 @@ info-java: ## Show Java project information
 # Format check (without modifying files)
 fmt-check-java: ## Check if Java code format meets standards (without modifying files)
 	@echo "$(YELLOW)Checking Java code formatting...$(RESET)"
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		cd $(JAVA_DIR) && $(MVN) spotless:check || (echo "$(RED)Java code is not formatted. Run 'make fmt-java' to fix.$(RESET)" && exit 1); \
 	fi
 	@echo "$(GREEN)Java code formatting checks passed$(RESET)"
@@ -101,21 +101,21 @@ fmt-check-java: ## Check if Java code format meets standards (without modifying 
 
 check-checkstyle-java: ## Run Checkstyle code style checks
 	@echo "$(YELLOW)Running Checkstyle checks...$(RESET)"
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		cd $(JAVA_DIR) && $(MVN) checkstyle:check; \
 		echo "$(GREEN)Checkstyle checks passed$(RESET)"; \
 	fi
 
 check-spotbugs-java: ## Run SpotBugs static analysis
 	@echo "$(YELLOW)Running SpotBugs static analysis...$(RESET)"
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		cd $(JAVA_DIR) && $(MVN) clean compile spotbugs:check $(MAVEN_QUIET); \
 		echo "$(GREEN)SpotBugs analysis passed$(RESET)"; \
 	fi
 
 check-pmd-java: ## Run PMD static analysis (currently disabled for Java 21)
 	@echo "$(YELLOW)PMD checks temporarily disabled (Java 21 compatibility issues)$(RESET)"
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(BLUE)PMD is currently skipped in pom.xml due to Java 21 compatibility$(RESET)"; \
 	fi
 
@@ -124,7 +124,7 @@ check-pmd-java: ## Run PMD static analysis (currently disabled for Java 21)
 # =============================================================================
 
 build-java: ## Build Java project
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Building Java project...$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) clean package $(MAVEN_SKIP_TESTS) $(MAVEN_QUIET); \
 		echo "$(GREEN)Java project built successfully$(RESET)"; \
@@ -134,14 +134,14 @@ build-java: ## Build Java project
 	fi
 
 build-fast-java: ## Fast build Java project (skip tests and checks)
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Fast building Java project...$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) clean compile package $(MAVEN_SKIP_TESTS) $(MAVEN_QUIET); \
 		echo "$(GREEN)Java project built successfully (fast mode)$(RESET)"; \
 	fi
 
 test-java: ## Run Java tests
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Running Java tests...$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) test; \
 		echo "$(GREEN)Java tests completed$(RESET)"; \
@@ -150,7 +150,7 @@ test-java: ## Run Java tests
 	fi
 
 run-java: ## Run Java Spring Boot application
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Starting Java application...$(RESET)"; \
 		echo "$(BLUE)Application will start at http://localhost:$(JAVA_APP_PORT)$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) spring-boot:run -pl $(JAVA_MAIN_MODULE) -Dspring-boot.run.profiles=$(SPRING_PROFILE); \
@@ -159,7 +159,7 @@ run-java: ## Run Java Spring Boot application
 	fi
 
 run-jar-java: ## Run Java application from JAR file
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Running Java application from JAR...$(RESET)"; \
 		if [ -f "$(JAVA_DIR)/$(JAVA_MAIN_MODULE)/target/$(JAVA_ARTIFACT)" ]; then \
 			cd $(JAVA_DIR) && java -jar $(JAVA_MAIN_MODULE)/target/$(JAVA_ARTIFACT) --spring.profiles.active=$(SPRING_PROFILE); \
@@ -174,20 +174,20 @@ run-jar-java: ## Run Java application from JAR file
 # =============================================================================
 
 db-info-java: ## Show database migration status
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Checking database migration status...$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) flyway:info -pl $(JAVA_MAIN_MODULE); \
 	fi
 
 db-migrate-java: ## Execute database migrations
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Executing database migrations...$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) flyway:migrate -pl $(JAVA_MAIN_MODULE); \
 		echo "$(GREEN)Database migrations completed$(RESET)"; \
 	fi
 
 db-repair-java: ## Repair database migration state
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Repairing database migration state...$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) flyway:repair -pl $(JAVA_MAIN_MODULE); \
 		echo "$(GREEN)Database migration state repaired$(RESET)"; \
@@ -198,20 +198,20 @@ db-repair-java: ## Repair database migration state
 # =============================================================================
 
 clean-java: ## Clean Java build artifacts
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Cleaning Java build artifacts...$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) clean $(MAVEN_QUIET); \
 		echo "$(GREEN)Java build artifacts cleaned$(RESET)"; \
 	fi
 
 deps-java: ## Show Java dependency tree
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Analyzing Java dependencies...$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) dependency:tree; \
 	fi
 
 security-java: ## Run Java security vulnerability scan
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Running Java security vulnerability scan...$(RESET)"; \
 		cd $(JAVA_DIR) && $(MVN) org.owasp:dependency-check-maven:check 2>/dev/null || \
 		echo "$(BLUE)OWASP Dependency Check not configured. Add plugin to pom.xml for security scanning.$(RESET)"; \
@@ -222,7 +222,7 @@ security-java: ## Run Java security vulnerability scan
 # =============================================================================
 
 ci-java: ## Full CI pipeline for Java (build + test + quality checks)
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Running Java CI pipeline...$(RESET)"; \
 		$(MAKE) clean-java && \
 		$(MAKE) check-java && \
@@ -234,7 +234,7 @@ ci-java: ## Full CI pipeline for Java (build + test + quality checks)
 	fi
 
 quick-check-java: ## Quick Java quality check (format + style, no SpotBugs)
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Running quick Java quality checks...$(RESET)"; \
 		cd $(JAVA_DIR) && \
 		$(MVN) clean compile $(MAVEN_QUIET) && \
@@ -244,7 +244,7 @@ quick-check-java: ## Quick Java quality check (format + style, no SpotBugs)
 	fi
 
 pre-commit-java: ## Pre-commit checks for Java (format + quick check)
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Running Java pre-commit checks...$(RESET)"; \
 		$(MAKE) fmt-java && \
 		$(MAKE) quick-check-java; \

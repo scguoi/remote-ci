@@ -17,7 +17,7 @@ TS_FILES := $(shell find frontend-ts -name "*.ts" -o -name "*.tsx" -o -name "*.j
 # =============================================================================
 
 install-tools-typescript: ## Install TypeScript development tools
-	@if [ "$(HAS_TS)" = "true" ]; then \
+	@if [ -d "$(TS_DIR)" ]; then \
 		echo "$(YELLOW)Installing TypeScript tools...$(RESET)"; \
 		cd $(TS_DIR) && $(NPM) install --save-dev \
 			prettier@^3.6.2 \
@@ -33,7 +33,7 @@ install-tools-typescript: ## Install TypeScript development tools
 	fi
 
 check-tools-typescript: ## Check TypeScript development tools
-	@if [ "$(HAS_TS)" = "true" ]; then \
+	@if [ -d "$(TS_DIR)" ]; then \
 		echo "$(YELLOW)Checking TypeScript tools...$(RESET)"; \
 		command -v node >/dev/null 2>&1 || (echo "$(RED)Node.js is not installed$(RESET)" && exit 1); \
 		command -v $(NPM) >/dev/null 2>&1 || (echo "$(RED)npm is not installed$(RESET)" && exit 1); \
@@ -54,7 +54,7 @@ check-tools-typescript: ## Check TypeScript development tools
 # =============================================================================
 
 fmt-typescript: ## Format TypeScript code
-	@if [ "$(HAS_TS)" = "true" ]; then \
+	@if [ -d "$(TS_DIR)" ]; then \
 		echo "$(YELLOW)Formatting TypeScript code...$(RESET)"; \
 		cd $(TS_DIR) && npx $(PRETTIER) --write "**/*.{ts,tsx,js,jsx,json,md}"; \
 		echo "$(GREEN)TypeScript code formatted$(RESET)"; \
@@ -67,7 +67,7 @@ fmt-typescript: ## Format TypeScript code
 # =============================================================================
 
 check-typescript: ## Check TypeScript code quality
-	@if [ "$(HAS_TS)" = "true" ]; then \
+	@if [ -d "$(TS_DIR)" ]; then \
 		echo "$(YELLOW)Checking TypeScript code quality...$(RESET)"; \
 		cd $(TS_DIR); \
 		echo "$(YELLOW)Running TypeScript type checking...$(RESET)" && \
@@ -80,10 +80,11 @@ check-typescript: ## Check TypeScript code quality
 	fi
 
 # Show TypeScript project information
+
 info-typescript: ## Show TypeScript project information
 	@echo "$(BLUE)TypeScript Project Information:$(RESET)"
 	@echo "  TypeScript files: $(words $(TS_FILES))"
-	@if [ "$(HAS_TS)" = "true" ]; then \
+	@if [ -d "$(TS_DIR)" ]; then \
 		echo "  Node version: $$(node --version)"; \
 		echo "  NPM version: $$(npm --version)"; \
 		cd $(TS_DIR) && echo "  TypeScript version: $$(npx tsc --version)"; \
@@ -92,7 +93,7 @@ info-typescript: ## Show TypeScript project information
 # Format check (without modifying files)
 fmt-check-typescript: ## Check if TypeScript code format meets standards (without modifying files)
 	@echo "$(YELLOW)Checking TypeScript code formatting...$(RESET)"
-	@if [ "$(HAS_TS)" = "true" ]; then \
+	@if [ -d "$(TS_DIR)" ]; then \
 		cd $(TS_DIR) && npx $(PRETTIER) --check "**/*.{ts,tsx,js,jsx,json,md}" || (echo "$(RED)TypeScript code is not formatted. Run 'make fmt-typescript' to fix.$(RESET)" && exit 1); \
 	fi
 	@echo "$(GREEN)TypeScript code formatting checks passed$(RESET)"
@@ -103,14 +104,14 @@ fmt-check-typescript: ## Check if TypeScript code format meets standards (withou
 
 check-eslint-typescript: ## Run ESLint syntax and style checks
 	@echo "$(YELLOW)Running ESLint checks...$(RESET)"
-	@if [ "$(HAS_TS)" = "true" ]; then \
+	@if [ -d "$(TS_DIR)" ]; then \
 		cd $(TS_DIR) && npx $(ESLINT) "**/*.{ts,tsx}"; \
 		echo "$(GREEN)ESLint checks passed$(RESET)"; \
 	fi
 
 check-tsc-typescript: ## Run TypeScript type checking
 	@echo "$(YELLOW)Running TypeScript type checking...$(RESET)"
-	@if [ "$(HAS_TS)" = "true" ]; then \
+	@if [ -d "$(TS_DIR)" ]; then \
 		cd $(TS_DIR) && npx $(TSC) --noEmit; \
 		echo "$(GREEN)TypeScript type checking passed$(RESET)"; \
 	fi

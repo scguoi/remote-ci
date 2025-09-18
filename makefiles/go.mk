@@ -27,7 +27,7 @@ COVER_DIR := $(GO_DIR)/coverage
 # =============================================================================
 
 install-tools-go: ## Install Go development tools
-	@if [ "$(HAS_GO)" = "true" ]; then \
+	@if [ -d "$(GO_DIR)" ]; then \
 		echo "$(YELLOW)Installing Go tools...$(RESET)"; \
 		$(GO) install golang.org/x/tools/cmd/goimports@latest; \
 		$(GO) install mvdan.cc/gofumpt@latest; \
@@ -41,7 +41,7 @@ install-tools-go: ## Install Go development tools
 	fi
 
 check-tools-go: ## Check Go development tools
-	@if [ "$(HAS_GO)" = "true" ]; then \
+	@if [ -d "$(GO_DIR)" ]; then \
 		echo "$(YELLOW)Checking Go tools...$(RESET)"; \
 		command -v $(GO) >/dev/null 2>&1 || (echo "$(RED)go is not installed$(RESET)" && exit 1); \
 		command -v $(GOIMPORTS) >/dev/null 2>&1 || (echo "$(RED)goimports is not installed. Run 'make install-tools-go'$(RESET)" && exit 1); \
@@ -58,7 +58,7 @@ check-tools-go: ## Check Go development tools
 # =============================================================================
 
 fmt-go: ## Format Go code
-	@if [ "$(HAS_GO)" = "true" ]; then \
+	@if [ -d "$(GO_DIR)" ]; then \
 		echo "$(YELLOW)Formatting Go code...$(RESET)"; \
 		if [ -n "$(GOFILES)" ]; then \
 			if command -v $(GOIMPORTS) >/dev/null 2>&1; then \
@@ -83,7 +83,7 @@ fmt-go: ## Format Go code
 # =============================================================================
 
 check-go: ## Check Go code quality
-	@if [ "$(HAS_GO)" = "true" ]; then \
+	@if [ -d "$(GO_DIR)" ]; then \
 		echo "$(YELLOW)Checking Go code quality...$(RESET)"; \
 		cd backend-go; \
 		if command -v $(GOCYCLO) >/dev/null 2>&1; then \
@@ -172,7 +172,7 @@ info-go: ## Show Go project information
 # Format check (without modifying files)
 fmt-check-go: ## Check if Go code format meets standards (without modifying files)
 	@echo "$(YELLOW)Checking Go code formatting...$(RESET)"
-	@if [ "$(HAS_GO)" = "true" ]; then \
+	@if [ -d "$(GO_DIR)" ]; then \
 		CHANGED=""; \
 		if [ -n "$(GOFILES)" ]; then \
 			if command -v $(GOIMPORTS) >/dev/null 2>&1; then \
@@ -202,7 +202,7 @@ fmt-check-go: ## Check if Go code format meets standards (without modifying file
 # =============================================================================
 
 build-go: ## Build Go service binary
-	@if [ "$(HAS_GO)" = "true" ]; then \
+	@if [ -d "$(GO_DIR)" ]; then \
 		echo "$(YELLOW)Building Go service...$(RESET)"; \
 		mkdir -p $(GO_BIN_DIR); \
 		cd $(GO_DIR) && GOCACHE=$$(pwd)/.gocache $(GO) build -o bin/server ./cmd/server; \
@@ -212,7 +212,7 @@ build-go: ## Build Go service binary
 	fi
 
 run-go: ## Run Go service locally (loads backend-go/.env)
-	@if [ "$(HAS_GO)" = "true" ]; then \
+	@if [ -d "$(GO_DIR)" ]; then \
 		echo "$(YELLOW)Starting Go service... (Ctrl+C to stop)$(RESET)"; \
 		cd $(GO_DIR) && $(GO) run ./cmd/server; \
 	else \
@@ -220,7 +220,7 @@ run-go: ## Run Go service locally (loads backend-go/.env)
 	fi
 
 test-go: ## Run Go tests
-	@if [ "$(HAS_GO)" = "true" ]; then \
+	@if [ -d "$(GO_DIR)" ]; then \
 		echo "$(YELLOW)Running Go tests...$(RESET)"; \
 		cd $(GO_DIR) && GOCACHE=$$(pwd)/.gocache $(GO) test ./internal/... -v; \
 		echo "$(GREEN)Go tests completed$(RESET)"; \
@@ -229,7 +229,7 @@ test-go: ## Run Go tests
 	fi
 
 coverage-go: ## Run Go tests with coverage report (text + HTML)
-	@if [ "$(HAS_GO)" = "true" ]; then \
+	@if [ -d "$(GO_DIR)" ]; then \
 		echo "$(YELLOW)Running Go coverage...$(RESET)"; \
 		mkdir -p $(COVER_DIR); \
 		cd $(GO_DIR) && GOCACHE=$$(pwd)/.gocache $(GO) test -covermode=atomic -coverprofile=coverage/coverage.out ./internal/... && \

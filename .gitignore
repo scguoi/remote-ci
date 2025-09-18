@@ -121,6 +121,7 @@ pids
 
 # Local development
 .local/
+/.localci.toml
 
 # =============================================================================
 # Security & Sensitive Data

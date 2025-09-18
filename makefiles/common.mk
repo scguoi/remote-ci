@@ -2,12 +2,6 @@
 # Common Variables and Functions - Makefile Module
 # =============================================================================
 
-# Project detection variables
-HAS_GO := $(shell [ -d "backend-go" ] && echo "true")
-HAS_TS := $(shell [ -d "frontend-ts" ] && echo "true")
-HAS_JAVA := $(shell [ -d "backend-java" ] && echo "true")
-HAS_PYTHON := $(shell [ -d "backend-python" ] && echo "true")
-
 # Color output definitions
 RED := \033[31m
 GREEN := \033[32m
@@ -18,10 +12,10 @@ RESET := \033[0m
 # Project status check
 project-status: ## Show detected project status
 	@echo "$(BLUE)Detected Projects:$(RESET)"
-	@if [ "$(HAS_GO)" = "true" ]; then echo "  $(GREEN)✓ Go Backend$(RESET)       (backend-go/)"; else echo "  $(RED)✗ Go Backend$(RESET)       (backend-go/)"; fi
-	@if [ "$(HAS_TS)" = "true" ]; then echo "  $(GREEN)✓ TypeScript Frontend$(RESET) (frontend-ts/)"; else echo "  $(RED)✗ TypeScript Frontend$(RESET) (frontend-ts/)"; fi
-	@if [ "$(HAS_JAVA)" = "true" ]; then echo "  $(GREEN)✓ Java Backend$(RESET)      (backend-java/)"; else echo "  $(RED)✗ Java Backend$(RESET)      (backend-java/)"; fi
-	@if [ "$(HAS_PYTHON)" = "true" ]; then echo "  $(GREEN)✓ Python Backend$(RESET)    (backend-python/)"; else echo "  $(RED)✗ Python Backend$(RESET)    (backend-python/)"; fi
+	@if [ -d "backend-go" ]; then echo "  $(GREEN)✓ Go Backend$(RESET)       (backend-go/)"; else echo "  $(RED)✗ Go Backend$(RESET)       (backend-go/)"; fi
+	@if [ -d "frontend-ts" ]; then echo "  $(GREEN)✓ TypeScript Frontend$(RESET) (frontend-ts/)"; else echo "  $(RED)✗ TypeScript Frontend$(RESET) (frontend-ts/)"; fi
+	@if [ -d "backend-java" ]; then echo "  $(GREEN)✓ Java Backend$(RESET)      (backend-java/)"; else echo "  $(RED)✗ Java Backend$(RESET)      (backend-java/)"; fi
+	@if [ -d "backend-python" ]; then echo "  $(GREEN)✓ Python Backend$(RESET)    (backend-python/)"; else echo "  $(RED)✗ Python Backend$(RESET)    (backend-python/)"; fi
 
 # Multi-language tool installation aggregate command
 install-tools: ## Install formatting and checking tools for all languages

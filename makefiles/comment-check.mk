@@ -18,7 +18,7 @@ check-comments: ## Check that all comments are written in English
 	@./$(COMMENT_CHECK_SCRIPT)
 
 check-comments-go: ## Check Go comments for English language
-	@if [ "$(HAS_GO)" = "true" ]; then \
+	@if [ -d "backend-go" ]; then \
 		echo "$(YELLOW)Checking Go comments...$(RESET)"; \
 		find backend-go -name "*.go" -exec grep -l '//' {} \; 2>/dev/null | head -5 | while read file; do \
 			echo "  Checking: $$file"; \
@@ -35,7 +35,7 @@ check-comments-go: ## Check Go comments for English language
 	fi
 
 check-comments-java: ## Check Java comments for English language
-	@if [ "$(HAS_JAVA)" = "true" ]; then \
+	@if [ -d "backend-java" ]; then \
 		echo "$(YELLOW)Checking Java comments...$(RESET)"; \
 		find backend-java -name "*.java" -exec grep -l '//' {} \; 2>/dev/null | head -5 | while read file; do \
 			echo "  Checking: $$file"; \
@@ -52,7 +52,7 @@ check-comments-java: ## Check Java comments for English language
 	fi
 
 check-comments-python: ## Check Python comments for English language
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "backend-python" ]; then \
 		echo "$(YELLOW)Checking Python comments...$(RESET)"; \
 		find backend-python -name "*.py" -exec grep -l '#' {} \; 2>/dev/null | head -5 | while read file; do \
 			echo "  Checking: $$file"; \

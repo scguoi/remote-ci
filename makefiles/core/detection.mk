@@ -33,12 +33,6 @@ define detect_current_context
 	)
 endef
 
-# 项目状态检测 (兼容性)
-HAS_GO := $(shell [ -d "backend-go" ] && [ -f "backend-go/go.mod" ] && echo "true")
-HAS_TS := $(shell [ -d "frontend-ts" ] && [ -f "frontend-ts/package.json" ] && echo "true")
-HAS_JAVA := $(shell [ -d "backend-java" ] && [ -f "backend-java/pom.xml" ] && echo "true")
-HAS_PYTHON := $(shell [ -d "backend-python" ] && [ -f "backend-python/main.py" ] && echo "true")
-
 # 智能变量
 ACTIVE_PROJECTS := $(detect_active_projects)
 CURRENT_CONTEXT := $(detect_current_context)
@@ -50,10 +44,10 @@ IS_MULTI_PROJECT := $(shell [ "$(PROJECT_COUNT)" -gt 1 ] && echo "true" || echo 
 # 项目状态显示函数
 define show_project_status
 	@echo "$(BLUE)检测到的活跃项目:$(RESET)"
-	@if [ "$(HAS_GO)" = "true" ]; then echo "  $(GREEN)✓ Go Backend$(RESET)         (backend-go/)"; else echo "  $(RED)✗ Go Backend$(RESET)         (backend-go/)"; fi
-	@if [ "$(HAS_TS)" = "true" ]; then echo "  $(GREEN)✓ TypeScript Frontend$(RESET) (frontend-ts/)"; else echo "  $(RED)✗ TypeScript Frontend$(RESET) (frontend-ts/)"; fi
-	@if [ "$(HAS_JAVA)" = "true" ]; then echo "  $(GREEN)✓ Java Backend$(RESET)        (backend-java/)"; else echo "  $(RED)✗ Java Backend$(RESET)        (backend-java/)"; fi
-	@if [ "$(HAS_PYTHON)" = "true" ]; then echo "  $(GREEN)✓ Python Backend$(RESET)      (backend-python/)"; else echo "  $(RED)✗ Python Backend$(RESET)      (backend-python/)"; fi
+	@if [ -d "backend-go" ] && [ -f "backend-go/go.mod" ]; then echo "  $(GREEN)✓ Go Backend$(RESET)         (backend-go/)"; else echo "  $(RED)✗ Go Backend$(RESET)         (backend-go/)"; fi
+	@if [ -d "frontend-ts" ] && [ -f "frontend-ts/package.json" ]; then echo "  $(GREEN)✓ TypeScript Frontend$(RESET) (frontend-ts/)"; else echo "  $(RED)✗ TypeScript Frontend$(RESET) (frontend-ts/)"; fi
+	@if [ -d "backend-java" ] && [ -f "backend-java/pom.xml" ]; then echo "  $(GREEN)✓ Java Backend$(RESET)        (backend-java/)"; else echo "  $(RED)✗ Java Backend$(RESET)        (backend-java/)"; fi
+	@if [ -d "backend-python" ] && [ -f "backend-python/main.py" ]; then echo "  $(GREEN)✓ Python Backend$(RESET)      (backend-python/)"; else echo "  $(RED)✗ Python Backend$(RESET)      (backend-python/)"; fi
 	@echo "$(BLUE)当前上下文:$(RESET) $(YELLOW)$(CURRENT_CONTEXT)$(RESET)"
 	@echo "$(BLUE)智能操作目标:$(RESET) $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
 endef

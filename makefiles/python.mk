@@ -19,7 +19,7 @@ PYTHON_FILES := $(shell find backend-python -name "*.py" 2>/dev/null || true)
 # =============================================================================
 
 install-tools-python: ## Install Python development tools
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Installing Python tools...$(RESET)"; \
 		$(PYTHON) -m pip install \
 			black==24.4.2 \
@@ -33,7 +33,7 @@ install-tools-python: ## Install Python development tools
 	fi
 
 check-tools-python: ## Check Python development tools
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Checking Python tools...$(RESET)"; \
 		test -f $(PYTHON) || (echo "$(RED)Python virtual environment not found at $(PYTHON)$(RESET)" && exit 1); \
 		$(PYTHON) -c "import black" 2>/dev/null || (echo "$(RED)black is not installed. Run 'make install-tools-python'$(RESET)" && exit 1); \
@@ -49,7 +49,7 @@ check-tools-python: ## Check Python development tools
 # =============================================================================
 
 fmt-python: ## Format Python code
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Formatting Python code...$(RESET)"; \
 		cd $(PYTHON_DIR) && \
 		$(PYTHON) -m $(ISORT) . && \
@@ -64,7 +64,7 @@ fmt-python: ## Format Python code
 # =============================================================================
 
 check-python: ## Check Python code quality
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Checking Python code quality...$(RESET)"; \
 		cd $(PYTHON_DIR) && \
 		echo "$(YELLOW)Running flake8...$(RESET)" && \
@@ -82,7 +82,7 @@ check-python: ## Check Python code quality
 info-python: ## Show Python project information
 	@echo "$(BLUE)Python Project Information:$(RESET)"
 	@echo "  Python files: $(words $(PYTHON_FILES))"
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "  Python version: $$($(PYTHON) --version)"; \
 		echo "  Pip version: $$($(PYTHON) -m pip --version)"; \
 	fi
@@ -90,7 +90,7 @@ info-python: ## Show Python project information
 # Format check (without modifying files)
 fmt-check-python: ## Check if Python code format meets standards (without modifying files)
 	@echo "$(YELLOW)Checking Python code formatting...$(RESET)"
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		cd $(PYTHON_DIR) && \
 		$(PYTHON) -m $(ISORT) --check-only . && \
 		$(PYTHON) -m $(BLACK) --check . || \
@@ -104,21 +104,21 @@ fmt-check-python: ## Check if Python code format meets standards (without modify
 
 check-flake8-python: ## Run flake8 syntax and style checks
 	@echo "$(YELLOW)Running flake8 checks...$(RESET)"
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		cd $(PYTHON_DIR) && $(PYTHON) -m $(FLAKE8) .; \
 		echo "$(GREEN)Flake8 checks passed$(RESET)"; \
 	fi
 
 check-mypy-python: ## Run mypy type checking
 	@echo "$(YELLOW)Running mypy type checking...$(RESET)"
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		cd $(PYTHON_DIR) && $(PYTHON) -m $(MYPY) .; \
 		echo "$(GREEN)MyPy type checking passed$(RESET)"; \
 	fi
 
 check-pylint-python: ## Run pylint static analysis
 	@echo "$(YELLOW)Running pylint static analysis...$(RESET)"
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		cd $(PYTHON_DIR) && $(PYTHON) -m $(PYLINT) --fail-under=8.0 *.py; \
 		echo "$(GREEN)Pylint analysis passed$(RESET)"; \
 	fi
@@ -128,7 +128,7 @@ check-pylint-python: ## Run pylint static analysis
 # =============================================================================
 
 test-python: ## Run Python tests
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Running Python tests...$(RESET)"; \
 		cd $(PYTHON_DIR) && $(PYTHON) -m pytest tests/ -v; \
 		echo "$(GREEN)Python tests completed$(RESET)"; \
@@ -137,7 +137,7 @@ test-python: ## Run Python tests
 	fi
 
 coverage-python: ## Run Python tests with coverage
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Running Python coverage...$(RESET)"; \
 		cd $(PYTHON_DIR) && \
 		$(PYTHON) -m pytest tests/ --cov=app --cov-report=term --cov-report=html:coverage_html; \
@@ -151,7 +151,7 @@ coverage-python: ## Run Python tests with coverage
 # =============================================================================
 
 run-python: ## Run Python FastAPI service
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Starting Python FastAPI service... (Ctrl+C to stop)$(RESET)"; \
 		cd $(PYTHON_DIR) && $(PYTHON) main.py; \
 	else \
@@ -159,7 +159,7 @@ run-python: ## Run Python FastAPI service
 	fi
 
 install-deps-python: ## Install Python dependencies
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Installing Python dependencies...$(RESET)"; \
 		cd $(PYTHON_DIR) && $(PYTHON) -m pip install -r requirements.txt; \
 		echo "$(GREEN)Python dependencies installed$(RESET)"; \
@@ -168,7 +168,7 @@ install-deps-python: ## Install Python dependencies
 	fi
 
 lint-python: ## Run comprehensive Python linting (flake8 + mypy + pylint)
-	@if [ "$(HAS_PYTHON)" = "true" ]; then \
+	@if [ -d "$(PYTHON_DIR)" ]; then \
 		echo "$(YELLOW)Running comprehensive Python linting...$(RESET)"; \
 		make check-flake8-python && \
 		make check-mypy-python && \
