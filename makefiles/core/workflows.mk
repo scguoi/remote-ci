@@ -285,7 +285,7 @@ smart_status: ## 📊 显示详细的项目状态
 				fi; \
 			done; \
 			echo "-- 全部应用 (含禁用) --"; \
-			scripts/parse_localci.sh all $(LOCALCI_CONFIG) | awk -F'|' '{ printf "  %s: %s [%s] -> %s\\n", $1, $2, $4, $3 }'; \
+			scripts/parse_localci.sh all $(LOCALCI_CONFIG) | awk -F'|' '{ printf "  %s: %s [%s] -> %s\\n", $$1, $$2, $$4, $$3 }'; \
 		fi; \
 	fi
 	@echo ""
