@@ -227,8 +227,8 @@ smart_push: ## 📤 智能安全推送 (分支检查+质量检查)
 # =============================================================================
 smart_clean: ## 🧹 智能清理构建产物
 	@echo "$(BLUE)🧹 智能清理: $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
-	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
-		for lang in go java python typescript; do \
+		@if [ -n "$(LOCALCI_CONFIG)" ]; then \
+			for lang in $(ACTIVE_PROJECTS); do \
 			apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
 			if [ -n "$$apps" ]; then \
 				for dir in $$apps; do \
@@ -288,7 +288,7 @@ smart_status: ## 📊 显示详细的项目状态
 		echo "$(YELLOW)LocalCI 配置: $(LOCALCI_CONFIG)$(RESET)"; \
 		if [ -f "$(LOCALCI_CONFIG)" ]; then \
 			echo "-- 启用的应用 --"; \
-			for lang in go java python typescript; do \
+				for lang in $(ACTIVE_PROJECTS); do \
 				apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG))"; \
 				if [ -n "$$apps" ]; then \
 					echo "  $$lang:"; \
