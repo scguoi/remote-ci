@@ -153,7 +153,7 @@ smart_test: ## 🧪 智能测试运行 (检测活跃项目)
 						go) if [ -d "$$dir" ]; then (cd $$dir && GOCACHE=$$(pwd)/.gocache go test ./... -v || true); fi ;; \
 						java) if [ -d "$$dir" ]; then (cd $$dir && mvn test); fi ;; \
 						python) if [ -d "$$dir" ]; then (cd $$dir && $(PYTHON) -m pytest -v || true); fi ;; \
-						typescript) echo "    (跳过 TypeScript 测试)" ;; \
+						typescript) : ;; \
 					esac; \
 				done; \
 			fi; \
