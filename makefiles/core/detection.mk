@@ -1,5 +1,5 @@
 # =============================================================================
-# 智能项目检测机制 - Core Detection Module
+# Intelligent Project Detection Mechanism - Core Detection Module
 # =============================================================================
 
 # Color definitions for output
@@ -12,7 +12,7 @@ RESET := \033[0m
 # LocalCI config path (local override, then default template)
 LOCALCI_CONFIG := $(shell if [ -f .localci.toml ]; then echo .localci.toml; elif [ -f makefiles/localci.toml ]; then echo makefiles/localci.toml; fi)
 
-# 检测活跃的项目类型 (基于实际文件存在)
+# Detect active project types (based on actual file existence)
 define detect_active_projects
 	$(shell \
 		PROJECTS=""; \
@@ -24,7 +24,7 @@ define detect_active_projects
 	)
 endef
 
-# 检测当前工作目录上下文 (用于智能dev命令)
+# Detect current working directory context (for intelligent dev commands)
 define detect_current_context
 	$(shell \
 		CURRENT_DIR=$$(basename "$(PWD)"); \
@@ -36,7 +36,7 @@ define detect_current_context
 	)
 endef
 
-# 智能变量（如存在 localci 配置，则以配置为准）
+# Intelligent variables (use localci config if exists)
 ifeq ($(strip $(LOCALCI_CONFIG)),)
   ACTIVE_PROJECTS := $(detect_active_projects)
 else
@@ -45,19 +45,19 @@ endif
 CURRENT_CONTEXT := $(detect_current_context)
 PROJECT_COUNT := $(shell echo $(ACTIVE_PROJECTS) | wc -w | tr -d ' ')
 
-# 检查是否是多项目环境
+# Check if this is a multi-project environment
 IS_MULTI_PROJECT := $(shell [ "$(PROJECT_COUNT)" -gt 1 ] && echo "true" || echo "false")
 
-# 项目状态显示函数
+# Project status display function
 define show_project_status
-	@echo "$(BLUE)检测到的活跃项目:$(RESET)"
+	@echo "$(BLUE)Detected Active Projects:$(RESET)"
 	@if [ -d "backend-go" ] && [ -f "backend-go/go.mod" ]; then echo "  $(GREEN)✓ Go Backend$(RESET)         (backend-go/)"; else echo "  $(RED)✗ Go Backend$(RESET)         (backend-go/)"; fi
 	@if [ -d "frontend-ts" ] && [ -f "frontend-ts/package.json" ]; then echo "  $(GREEN)✓ TypeScript Frontend$(RESET) (frontend-ts/)"; else echo "  $(RED)✗ TypeScript Frontend$(RESET) (frontend-ts/)"; fi
 	@if [ -d "backend-java" ] && [ -f "backend-java/pom.xml" ]; then echo "  $(GREEN)✓ Java Backend$(RESET)        (backend-java/)"; else echo "  $(RED)✗ Java Backend$(RESET)        (backend-java/)"; fi
 	@if [ -d "backend-python" ] && [ -f "backend-python/main.py" ]; then echo "  $(GREEN)✓ Python Backend$(RESET)      (backend-python/)"; else echo "  $(RED)✗ Python Backend$(RESET)      (backend-python/)"; fi
-	@echo "$(BLUE)当前上下文:$(RESET) $(YELLOW)$(CURRENT_CONTEXT)$(RESET)"
-	@echo "$(BLUE)智能操作目标:$(RESET) $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
+	@echo "$(BLUE)Current Context:$(RESET) $(YELLOW)$(CURRENT_CONTEXT)$(RESET)"
+	@echo "$(BLUE)Intelligent Operation Target:$(RESET) $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
 endef
 
-# 项目检测变量和函数定义完成
-# _debug 目标在主Makefile中定义，避免重复定义警告
+# Project detection variables and function definitions complete
+# _debug target defined in main Makefile to avoid duplicate definition warnings

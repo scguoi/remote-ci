@@ -1,6 +1,6 @@
 # =============================================================================
-# 多语言CI/CD工具链 - 优化版主Makefile (仅15个核心命令)
-# 从95个命令精简到15个核心命令，提供智能项目检测和自动化工作流
+# Multi-language CI/CD Toolchain - Optimized Main Makefile (Only 15 Core Commands)
+# Streamlined from 95 commands to 15 core commands, providing intelligent project detection and automated workflows
 # =============================================================================
 
 # Include core modules
@@ -17,129 +17,129 @@ include makefiles/common.mk
 include makefiles/comment-check.mk
 
 # =============================================================================
-# 核心命令声明
+# Core command declarations
 # =============================================================================
 .PHONY: help setup format check test build push clean status info lint fix ci hooks enable-legacy
 
 # =============================================================================
-# 第一层：日常核心命令 (8个) - 你只需要记住这些！
+# Tier 1: Daily Core Commands (8) - These are all you need to remember!
 # =============================================================================
 
-# Default target - 智能帮助
+# Default target - Intelligent help
 .DEFAULT_GOAL := help
-help: ## 📚 显示帮助信息和项目状态  
-	@echo "$(BLUE)🚀 多语言CI/CD工具链 - 智能版$(RESET)"
-	@echo "$(YELLOW)活跃项目:$(RESET) $(GREEN)$(ACTIVE_PROJECTS)$(RESET) | $(YELLOW)当前上下文:$(RESET) $(GREEN)$(CURRENT_CONTEXT)$(RESET)"
+help: ## 📚 Show help information and project status  
+	@echo "$(BLUE)🚀 Multi-language CI/CD Toolchain - Intelligent Version$(RESET)"
+	@echo "$(YELLOW)Active Projects:$(RESET) $(GREEN)$(ACTIVE_PROJECTS)$(RESET) | $(YELLOW)Current Context:$(RESET) $(GREEN)$(CURRENT_CONTEXT)$(RESET)"
 	@echo ""
-	@echo "$(BLUE)📋 核心命令 (日常开发):$(RESET)"
-	@echo "  $(GREEN)make setup$(RESET)     🛠️  一次性环境搭建 (工具+钩子+分支策略)"
-	@echo "  $(GREEN)make format$(RESET)    ✨  格式化代码 (智能检测: $(ACTIVE_PROJECTS))"
-	@echo "  $(GREEN)make check$(RESET)     🔍  质量检查 (智能检测: $(ACTIVE_PROJECTS))"  
-	@echo "  $(GREEN)make test$(RESET)      🧪  运行测试 (智能检测: $(ACTIVE_PROJECTS))"
-	@echo "  $(GREEN)make build$(RESET)     📦  构建项目 (智能检测: $(ACTIVE_PROJECTS))"
-	@echo "  $(GREEN)make push$(RESET)      📤  安全推送到远程 (预检查)"
-	@echo "  $(GREEN)make clean$(RESET)     🧹  清理构建产物"
+	@echo "$(BLUE)📋 Core Commands (Daily Development):$(RESET)"
+	@echo "  $(GREEN)make setup$(RESET)     🛠️  One-time environment setup (tools+hooks+branch strategy)"
+	@echo "  $(GREEN)make format$(RESET)    ✨  Format code (intelligent detection: $(ACTIVE_PROJECTS))"
+	@echo "  $(GREEN)make check$(RESET)     🔍  Quality check (intelligent detection: $(ACTIVE_PROJECTS))"  
+	@echo "  $(GREEN)make test$(RESET)      🧪  Run tests (intelligent detection: $(ACTIVE_PROJECTS))"
+	@echo "  $(GREEN)make build$(RESET)     📦  Build projects (intelligent detection: $(ACTIVE_PROJECTS))"
+	@echo "  $(GREEN)make push$(RESET)      📤  Safe push to remote (with pre-checks)"
+	@echo "  $(GREEN)make clean$(RESET)     🧹  Clean build artifacts"
 	@echo ""
-	@echo "$(BLUE)🔧 专业命令:$(RESET)"
-	@echo "  $(GREEN)make status$(RESET)    📊  显示详细项目状态"
-	@echo "  $(GREEN)make info$(RESET)      ℹ️   显示工具和依赖信息"  
-	@echo "  $(GREEN)make lint$(RESET)      🔧  运行代码检查 (check的别名)"
-	@echo "  $(GREEN)make fix$(RESET)       🛠️  自动修复代码问题"
-	@echo "  $(GREEN)make ci$(RESET)        🤖  完整CI流程 (format+check+test+build)"
+	@echo "$(BLUE)🔧 Professional Commands:$(RESET)"
+	@echo "  $(GREEN)make status$(RESET)    📊  Show detailed project status"
+	@echo "  $(GREEN)make info$(RESET)      ℹ️   Show tools and dependency information"  
+	@echo "  $(GREEN)make lint$(RESET)      🔧  Run code linting (alias for check)"
+	@echo "  $(GREEN)make fix$(RESET)       🛠️  Auto-fix code issues"
+	@echo "  $(GREEN)make ci$(RESET)        🤖  Complete CI pipeline (format+check+test+build)"
 	@echo ""
-	@echo "$(BLUE)⚙️ 高级命令:$(RESET)"
-	@echo "  $(GREEN)make hooks$(RESET)     ⚙️  Git钩子管理菜单"
-	@echo "  $(GREEN)make enable-legacy$(RESET) 🔄  启用完整旧命令集 (向后兼容)"
+	@echo "$(BLUE)⚙️ Advanced Commands:$(RESET)"
+	@echo "  $(GREEN)make hooks$(RESET)     ⚙️  Git hooks management menu"
+	@echo "  $(GREEN)make enable-legacy$(RESET) 🔄  Enable complete legacy command set (backward compatibility)"
 	@echo ""
 	@if [ "$(IS_MULTI_PROJECT)" = "true" ]; then \
-		echo "$(YELLOW)💡 检测到多项目环境，所有命令将智能处理多个项目$(RESET)"; \
+		echo "$(YELLOW)💡 Multi-project environment detected, all commands will intelligently handle multiple projects$(RESET)"; \
 	else \
-		echo "$(YELLOW)💡 单项目环境，请在对应子目录中运行常用命令 (setup/format/check/test/build)$(RESET)"; \
+		echo "$(YELLOW)💡 Single project environment, please run common commands in corresponding subdirectories (setup/format/check/test/build)$(RESET)"; \
 	fi
 
-# 核心工作流命令 - 直接调用智能实现
-setup: smart_setup ## 🛠️ 一次性环境搭建 (工具+钩子+分支策略)
+# Core workflow commands - Direct calls to intelligent implementations
+setup: smart_setup ## 🛠️ One-time environment setup (tools+hooks+branch strategy)
 
-format: smart_format ## ✨ 智能代码格式化 (检测活跃项目)
+format: smart_format ## ✨ Intelligent code formatting (detect active projects)
 
-check: smart_check ## 🔍 智能代码质量检查 (检测活跃项目)  
+check: smart_check ## 🔍 Intelligent code quality check (detect active projects)  
 
-test: smart_test ## 🧪 智能测试运行 (检测活跃项目)
+test: smart_test ## 🧪 Intelligent test execution (detect active projects)
 
-build: smart_build ## 📦 智能项目构建 (检测活跃项目)
+build: smart_build ## 📦 Intelligent project build (detect active projects)
 
-push: smart_push ## 📤 智能安全推送 (分支检查+质量检查)
+push: smart_push ## 📤 Intelligent safe push (branch check + quality check)
 
-clean: smart_clean ## 🧹 智能清理构建产物
+clean: smart_clean ## 🧹 Intelligent cleanup of build artifacts
 
 # =============================================================================  
-# 第二层：专业命令 (5个)
+# Tier 2: Professional Commands (5)
 # =============================================================================
 
-status: smart_status ## 📊 显示详细的项目状态
+status: smart_status ## 📊 Show detailed project status
 
-info: smart_info ## ℹ️ 显示工具和依赖信息  
+info: smart_info ## ℹ️ Show tools and dependency information  
 
-lint: smart_check ## 🔧 运行代码检查 (check的别名)
+lint: smart_check ## 🔧 Run code linting (alias for check)
 
-fix: smart_fix ## 🛠️ 自动修复代码问题 (format + 部分lint修复)
+fix: smart_fix ## 🛠️ Auto-fix code issues (format + partial lint fixes)
 
-ci: smart_ci ## 🤖 完整CI流程 (format + check + test + build)
+ci: smart_ci ## 🤖 Complete CI pipeline (format + check + test + build)
 
 # =============================================================================
-# 第三层：高级命令 (2个) 
+# Tier 3: Advanced Commands (2) 
 # =============================================================================
 
-hooks: ## ⚙️ Git钩子管理菜单
-	@echo "$(BLUE)⚙️ Git钩子管理$(RESET)"
+hooks: ## ⚙️ Git hooks management menu
+	@echo "$(BLUE)⚙️ Git Hooks Management$(RESET)"
 	@echo ""
-	@echo "$(GREEN)安装钩子:$(RESET)"
-	@echo "  make hooks-install       📌 安装所有钩子 (推荐)"
-	@echo "  make hooks-install-basic 📋 安装基本钩子 (轻量)"
-	@echo "  make hooks-fmt           ✨ 仅格式化钩子"
-	@echo "  make hooks-commit-msg    💬 仅提交消息钩子"
+	@echo "$(GREEN)Install Hooks:$(RESET)"
+	@echo "  make hooks-install       📌 Install all hooks (recommended)"
+	@echo "  make hooks-install-basic 📋 Install basic hooks (lightweight)"
+	@echo "  make hooks-fmt           ✨ Format hooks only"
+	@echo "  make hooks-commit-msg    💬 Commit message hooks only"
 	@echo ""
-	@echo "$(RED)卸载钩子:$(RESET)"
-	@echo "  make hooks-uninstall     ❌ 卸载所有钩子"
+	@echo "$(RED)Uninstall Hooks:$(RESET)"
+	@echo "  make hooks-uninstall     ❌ Uninstall all hooks"
 	@echo ""
-	@echo "$(YELLOW)当前钩子状态:$(RESET)"
+	@echo "$(YELLOW)Current Hook Status:$(RESET)"
 	@ls -la .git/hooks/ | grep -E "(pre-commit|commit-msg|pre-push)" | head -3
 
-enable-legacy: ## 🔄 启用完整的旧命令集 (向后兼容)
-	@echo "$(YELLOW)🔄 启用旧命令集...$(RESET)"
+enable-legacy: ## 🔄 Enable complete legacy command set (backward compatibility)
+	@echo "$(YELLOW)🔄 Enabling legacy command set...$(RESET)"
 	@if [ ! -f "makefiles/legacy/enabled" ]; then \
 		echo "# Legacy commands enabled" > makefiles/legacy/enabled; \
-		echo "$(GREEN)✅ 旧命令集已启用$(RESET)"; \
+		echo "$(GREEN)✅ Legacy command set enabled$(RESET)"; \
 		echo ""; \
-		echo "$(BLUE)现在你可以使用所有原始命令，例如:$(RESET)"; \
+		echo "$(BLUE)You can now use all original commands, for example:$(RESET)"; \
 		echo "  make fmt-go fmt-java fmt-python fmt-typescript"; \
 		echo "  make check-go check-java check-python check-typescript"; \
 		echo "  make install-tools-go install-tools-java ..."; \
 		echo ""; \
-		echo "$(YELLOW)注意: 建议优先使用新的智能命令以获得更好体验$(RESET)"; \
+		echo "$(YELLOW)Note: Recommended to prioritize new intelligent commands for better experience$(RESET)"; \
 	else \
-		echo "$(GREEN)✅ 旧命令集已经启用$(RESET)"; \
+		echo "$(GREEN)✅ Legacy command set already enabled$(RESET)"; \
 	fi
 
 # =============================================================================
-# 向后兼容：条件包含旧命令
+# Backward compatibility: Conditional inclusion of legacy commands
 # =============================================================================
 -include makefiles/legacy/enabled
 ifneq (,$(wildcard makefiles/legacy/enabled))
-    # 如果启用了legacy模式，这里可以包含额外的旧命令定义
-    # 但当前版本中，旧命令通过原始模块文件直接可用
+    # If legacy mode is enabled, additional legacy command definitions can be included here
+    # In current version, legacy commands are directly available through original module files
 endif
 
 # =============================================================================
-# 隐藏的工具命令 (用于调试和测试)
+# Hidden utility commands (for debugging and testing)
 # =============================================================================
-_debug: ## 🔍 [调试] 测试项目检测和Makefile状态
-	@echo "$(YELLOW)项目检测测试:$(RESET)"
+_debug: ## 🔍 [Debug] Test project detection and Makefile status
+	@echo "$(YELLOW)Project Detection Test:$(RESET)"
 	@echo "ACTIVE_PROJECTS: '$(ACTIVE_PROJECTS)'"
 	@echo "CURRENT_CONTEXT: '$(CURRENT_CONTEXT)'"
 	@echo "PROJECT_COUNT: $(PROJECT_COUNT)"
 	@echo "IS_MULTI_PROJECT: $(IS_MULTI_PROJECT)"
 	$(call show_project_status)
 	@echo ""
-	@echo "$(BLUE)当前Makefile状态:$(RESET)"
-	@echo "包含的模块: detection.mk workflows.mk + 原始语言模块"
+	@echo "$(BLUE)Current Makefile Status:$(RESET)"
+	@echo "Included modules: detection.mk workflows.mk + original language modules"
