@@ -121,7 +121,8 @@ pids
 
 # Local development
 .local/
-/.localci.toml
+.localci.toml
+makefiles/legacy/enabled
 
 # =============================================================================
 # Security & Sensitive Data
