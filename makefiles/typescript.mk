@@ -30,38 +30,33 @@ TS_FILES := $(shell \
 # =============================================================================
 
 install-tools-typescript: ## 🛠️ Install TypeScript development tools
-	@if [ -d "$(TS_DIR)" ]; then \
-		echo "$(YELLOW)Installing TypeScript tools...$(RESET)"; \
-		cd $(TS_DIR) && $(NPM) install --save-dev \
-			typescript@^5.0.0 \
-			prettier@^3.6.2 \
-			eslint@^9.33.0 \
-			@typescript-eslint/parser@^8.40.0 \
-			@typescript-eslint/eslint-plugin@^8.40.0 \
-			eslint-config-prettier@^9.1.0 \
-			eslint-plugin-import@^2.29.1 \
-			eslint-plugin-prettier@^5.1.3; \
-		echo "$(GREEN)TypeScript tools installed$(RESET)"; \
-	else \
-		echo "$(BLUE)Skipping TypeScript tools (no TypeScript project detected)$(RESET)"; \
-	fi
+	@echo "$(YELLOW)Installing TypeScript tools globally...$(RESET)"
+	@npm install -g \
+		typescript@latest \
+		prettier@latest \
+		eslint@latest \
+		@typescript-eslint/parser@latest \
+		@typescript-eslint/eslint-plugin@latest \
+		eslint-config-prettier@latest \
+		eslint-plugin-import@latest \
+		eslint-plugin-prettier@latest && \
+	echo "$(GREEN)TypeScript tools installed globally$(RESET)" || \
+	(echo "$(RED)Failed to install TypeScript tools$(RESET)" && exit 1)
 
 check-tools-typescript: ## ✅ Check TypeScript development tools availability
-	@if [ -d "$(TS_DIR)" ]; then \
-		echo "$(YELLOW)Checking TypeScript tools...$(RESET)"; \
-		command -v node >/dev/null 2>&1 || (echo "$(RED)Node.js is not installed$(RESET)" && exit 1); \
-		command -v $(NPM) >/dev/null 2>&1 || (echo "$(RED)npm is not installed$(RESET)" && exit 1); \
-		(cd $(TS_DIR) && $(NPM) list typescript >/dev/null 2>&1) || (echo "$(RED)TypeScript is not installed. Run 'make install-tools-typescript'$(RESET)" && exit 1); \
-		(cd $(TS_DIR) && $(NPM) list prettier >/dev/null 2>&1) || (echo "$(RED)Prettier is not installed. Run 'make install-tools-typescript'$(RESET)" && exit 1); \
-		(cd $(TS_DIR) && $(NPM) list eslint >/dev/null 2>&1) || (echo "$(RED)ESLint is not installed. Run 'make install-tools-typescript'$(RESET)" && exit 1); \
-		echo "$(GREEN)TypeScript tools available$(RESET)"; \
-		echo "  TypeScript files: $(words $(TS_FILES))"; \
-		echo "  Node version: $$(node --version)"; \
-		echo "  NPM version: $$(npm --version)"; \
-		if [ -d "$(TS_DIR)" ]; then \
-			cd $(TS_DIR) && echo "  TypeScript version: $$(npx tsc --version)"; \
-		fi; \
-	fi
+	@echo "$(YELLOW)Checking TypeScript tools...$(RESET)"
+	@command -v node >/dev/null 2>&1 || (echo "$(RED)Node.js is not installed$(RESET)" && exit 1)
+	@command -v npm >/dev/null 2>&1 || (echo "$(RED)npm is not installed$(RESET)" && exit 1)
+	@command -v tsc >/dev/null 2>&1 || (echo "$(RED)TypeScript is not installed globally. Run 'make install-tools-typescript'$(RESET)" && exit 1)
+	@command -v prettier >/dev/null 2>&1 || (echo "$(RED)Prettier is not installed globally. Run 'make install-tools-typescript'$(RESET)" && exit 1)
+	@command -v eslint >/dev/null 2>&1 || (echo "$(RED)ESLint is not installed globally. Run 'make install-tools-typescript'$(RESET)" && exit 1)
+	@echo "$(GREEN)TypeScript tools available globally$(RESET)"
+	@echo "  TypeScript files: $(words $(TS_FILES))"
+	@echo "  Node version: $$(node --version)"
+	@echo "  NPM version: $$(npm --version)"
+	@echo "  TypeScript version: $$(tsc --version)"
+	@echo "  Prettier version: $$(prettier --version)"
+	@echo "  ESLint version: $$(eslint --version)"
 
 fmt-typescript: ## ✨ Format TypeScript code
 	@if [ -n "$(TS_DIRS)" ]; then \
@@ -69,7 +64,7 @@ fmt-typescript: ## ✨ Format TypeScript code
 		for dir in $(TS_DIRS); do \
 			if [ -d "$$dir" ]; then \
 				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
-				cd $$dir && npx $(PRETTIER) --write "**/*.{ts,tsx,js,jsx,json,md}"; \
+				cd $$dir && prettier --write "**/*.{ts,tsx,js,jsx,json,md}"; \
 				cd - > /dev/null; \
 			else \
 				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
@@ -88,11 +83,11 @@ check-typescript: ## 🔍 Check TypeScript code quality
 				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
 				cd $$dir; \
 				echo "$(YELLOW)    Checking format compliance...$(RESET)" && \
-				npx $(PRETTIER) --check "**/*.{ts,tsx,js,jsx,json,md}" && \
+				prettier --check "**/*.{ts,tsx,js,jsx,json,md}" && \
 				echo "$(YELLOW)    Running TypeScript type checking...$(RESET)" && \
-				npx tsc --noEmit && \
+				tsc --noEmit && \
 				echo "$(YELLOW)    Running ESLint...$(RESET)" && \
-				npx $(ESLINT) "**/*.{ts,tsx,js,jsx}"; \
+				eslint "**/*.{ts,tsx,js,jsx}" || true; \
 				cd - > /dev/null; \
 			else \
 				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
