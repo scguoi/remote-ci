@@ -225,7 +225,7 @@ smart_clean: ## 🧹 智能清理构建产物
 					case $$lang in \
 						go) if [ -d "$$dir" ]; then (cd $$dir && go clean && rm -f bin/* || true); fi ;; \
 						java) if [ -d "$$dir" ]; then (cd $$dir && mvn clean -q); fi ;; \
-						python) if [ -d "$$dir" ]; then (cd $$dir && find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true); fi ;; \
+						python) if [ -d "$$dir" ]; then (cd $$dir && find . -type d -name "__pycache__" -exec rm -rf {} \; 2>/dev/null || true); fi ;; \
 						typescript) if [ -d "$$dir" ]; then (cd $$dir && rm -rf dist node_modules/.cache || true); fi ;; \
 					esac; \
 				done; \
@@ -239,7 +239,7 @@ smart_clean: ## 🧹 智能清理构建产物
 				java) echo "  - 清理Java构建产物..." && \
 					if [ -d "backend-java" ]; then $(MAKE) --no-print-directory clean-java; else echo "    Java目录不存在"; fi ;; \
 				python) echo "  - 清理Python缓存..." && \
-					if [ -d "backend-python" ]; then find backend-python -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true; else echo "    Python目录不存在"; fi ;; \
+						if [ -d "backend-python" ]; then find backend-python -type d -name "__pycache__" -exec rm -rf {} \; 2>/dev/null || true; else echo "    Python目录不存在"; fi ;; \
 				typescript) echo "  - 清理TypeScript构建产物..." && \
 					if [ -d "frontend-ts" ]; then cd frontend-ts && rm -rf dist node_modules/.cache || true; else echo "    TypeScript目录不存在"; fi ;; \
 			esac; \
