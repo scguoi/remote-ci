@@ -10,12 +10,28 @@ COMMENT_CHECK_SCRIPT := makefiles/check-comments.sh
 # =============================================================================
 
 check-comments: ## Check that all comments are written in English
-	@if [ ! -f "$(COMMENT_CHECK_SCRIPT)" ]; then \
-		echo "$(RED)Comment check script not found: $(COMMENT_CHECK_SCRIPT)$(RESET)"; \
-		exit 1; \
-	fi
 	@echo "$(BLUE)🔍 Checking comment language compliance...$(RESET)"
-	@./$(COMMENT_CHECK_SCRIPT)
+	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
+		echo "$(YELLOW)Using config: $(LOCALCI_CONFIG)$(RESET)"; \
+		if [ -z "$(ACTIVE_PROJECTS)" ]; then \
+			echo "$(RED)No active languages from config; nothing to check$(RESET)"; \
+			exit 0; \
+		fi; \
+		for lang in $(ACTIVE_PROJECTS); do \
+			case $$lang in \
+				go) $(MAKE) --no-print-directory check-comments-go ;; \
+				java) $(MAKE) --no-print-directory check-comments-java ;; \
+				python) $(MAKE) --no-print-directory check-comments-python ;; \
+				typescript) $(MAKE) --no-print-directory check-comments-typescript ;; \
+			esac; \
+		done; \
+	else \
+		if [ ! -f "$(COMMENT_CHECK_SCRIPT)" ]; then \
+			echo "$(RED)Comment check script not found: $(COMMENT_CHECK_SCRIPT)$(RESET)"; \
+			exit 1; \
+		fi; \
+		./$(COMMENT_CHECK_SCRIPT); \
+	fi
 
 check-comments-go: ## Check Go comments for English language
 	@if [ -d "backend-go" ]; then \
