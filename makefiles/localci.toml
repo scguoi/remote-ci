@@ -2,22 +2,21 @@
 version = 1
 
 [[go.apps]]
-name = "go-main"
-dir = "backend-go"
+name = "go-service-api"
+dir = "demo-apps/backends/go"
 enabled = true
 
 [[java.apps]]
 name = "user-web"
-dir = "backend-java"
+dir = "demo-apps/backends/java"
 enabled = true
 
 [[python.apps]]
-name = "python-main"
-dir = "backend-python"
+name = "python-nlp"
+dir = "demo-apps/backends/python"
 enabled = true
 
 [[typescript.apps]]
 name = "frontend"
-dir = "frontend-ts"
+dir = "demo-apps/frontends/ts"
 enabled = true
-

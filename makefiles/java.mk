@@ -2,14 +2,29 @@
 # Java Language Support - Makefile Module
 # =============================================================================
 
-# Java tool definitions
+# Java project variables - use dynamic directories from config
 MVN := mvn
 JAVA_MAIN_MODULE := user-web
 JAVA_ARTIFACT := $(JAVA_MAIN_MODULE)-1.0.0.jar
 
-# Java project variables
-JAVA_DIR := backend-java
-JAVA_FILES := $(shell find backend-java -name "*.java" 2>/dev/null || true)
+# Get all Java directories from config - use shell directly to avoid function call issues
+JAVA_DIRS := $(shell \
+	if [ -n "$(LOCALCI_CONFIG)" ] && [ -f "$(LOCALCI_CONFIG)" ]; then \
+		scripts/parse_localci.sh enabled java $(LOCALCI_CONFIG) | cut -d'|' -f2 | tr '\n' ' '; \
+	else \
+		echo "demo-apps/backends/java"; \
+	fi)
+
+JAVA_PRIMARY_DIR := $(shell echo $(JAVA_DIRS) | cut -d' ' -f1)
+
+# For legacy compatibility, use primary dir for single-dir variables
+JAVA_DIR := $(JAVA_PRIMARY_DIR)
+JAVA_FILES := $(shell \
+	for dir in $(JAVA_DIRS); do \
+		if [ -d "$$dir" ]; then \
+			find $$dir -name "*.java" 2>/dev/null || true; \
+		fi; \
+	done)
 
 # Maven options
 MAVEN_OPTS := -Dmaven.test.failure.ignore=false
@@ -48,34 +63,50 @@ check-tools-java: ## Check Java development tools
 # Java Code Formatting
 # =============================================================================
 
-fmt-java: ## Format Java code
-	@if [ -d "$(JAVA_DIR)" ]; then \
-		echo "$(YELLOW)Formatting Java code...$(RESET)"; \
-		cd $(JAVA_DIR) && $(MVN) spotless:apply; \
-		echo "$(GREEN)Java code formatted$(RESET)"; \
+fmt-java: ## Format Java code (all configured Java projects)
+	@if [ -n "$(JAVA_DIRS)" ]; then \
+		echo "$(YELLOW)Formatting Java code in: $(JAVA_DIRS)$(RESET)"; \
+		for dir in $(JAVA_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
+				cd $$dir && $(MVN) spotless:apply; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
+		echo "$(GREEN)Java code formatting completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Java formatting (no Java project)$(RESET)"; \
+		echo "$(BLUE)Skipping Java formatting (no Java projects configured)$(RESET)"; \
 	fi
 
 # =============================================================================
 # Java Code Quality Checks
 # =============================================================================
 
-check-java: ## Check Java code quality
-	@if [ -d "$(JAVA_DIR)" ]; then \
-		echo "$(YELLOW)Checking Java code quality...$(RESET)"; \
-		cd $(JAVA_DIR) && \
-		echo "$(YELLOW)Compiling project...$(RESET)" && \
-		$(MVN) clean compile $(MAVEN_QUIET) && \
-		echo "$(YELLOW)Running Spotless format check...$(RESET)" && \
-		$(MVN) spotless:check $(MAVEN_QUIET) && \
-		echo "$(YELLOW)Running Checkstyle...$(RESET)" && \
-		$(MVN) checkstyle:check && \
-		echo "$(YELLOW)Running SpotBugs (with fresh compilation)...$(RESET)" && \
-		$(MVN) clean compile spotbugs:check $(MAVEN_QUIET); \
+check-java: ## Check Java code quality (all configured Java projects)
+	@if [ -n "$(JAVA_DIRS)" ]; then \
+		echo "$(YELLOW)Checking Java code quality in: $(JAVA_DIRS)$(RESET)"; \
+		for dir in $(JAVA_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
+				cd $$dir && \
+				echo "$(YELLOW)    Compiling project...$(RESET)" && \
+				$(MVN) clean compile $(MAVEN_QUIET) && \
+				echo "$(YELLOW)    Running Spotless format check...$(RESET)" && \
+				$(MVN) spotless:check $(MAVEN_QUIET) && \
+				echo "$(YELLOW)    Running Checkstyle...$(RESET)" && \
+				$(MVN) checkstyle:check && \
+				echo "$(YELLOW)    Running SpotBugs (with fresh compilation)...$(RESET)" && \
+				$(MVN) clean compile spotbugs:check $(MAVEN_QUIET); \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
 		echo "$(GREEN)Java code quality checks completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Java checks (no Java project)$(RESET)"; \
+		echo "$(BLUE)Skipping Java checks (no Java projects configured)$(RESET)"; \
 	fi
 
 # Show Java project information
@@ -123,50 +154,92 @@ check-pmd-java: ## Run PMD static analysis (currently disabled for Java 21)
 # Java Build and Deployment
 # =============================================================================
 
-build-java: ## Build Java project
-	@if [ -d "$(JAVA_DIR)" ]; then \
-		echo "$(YELLOW)Building Java project...$(RESET)"; \
-		cd $(JAVA_DIR) && $(MVN) clean package $(MAVEN_SKIP_TESTS) $(MAVEN_QUIET); \
-		echo "$(GREEN)Java project built successfully$(RESET)"; \
-		echo "$(BLUE)JAR file: $(JAVA_DIR)/$(JAVA_MAIN_MODULE)/target/$(JAVA_ARTIFACT)$(RESET)"; \
+build-java: ## Build Java project (all configured Java projects)
+	@if [ -n "$(JAVA_DIRS)" ]; then \
+		echo "$(YELLOW)Building Java projects in: $(JAVA_DIRS)$(RESET)"; \
+		for dir in $(JAVA_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Building $$dir...$(RESET)"; \
+				cd $$dir && $(MVN) clean package $(MAVEN_SKIP_TESTS) $(MAVEN_QUIET); \
+				echo "$(GREEN)  Java project built successfully: $$dir$(RESET)"; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
+		echo "$(GREEN)Java build completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Java build (no Java project)$(RESET)"; \
+		echo "$(BLUE)Skipping Java build (no Java projects configured)$(RESET)"; \
 	fi
 
-build-fast-java: ## Fast build Java project (skip tests and checks)
-	@if [ -d "$(JAVA_DIR)" ]; then \
-		echo "$(YELLOW)Fast building Java project...$(RESET)"; \
-		cd $(JAVA_DIR) && $(MVN) clean compile package $(MAVEN_SKIP_TESTS) $(MAVEN_QUIET); \
-		echo "$(GREEN)Java project built successfully (fast mode)$(RESET)"; \
+build-fast-java: ## Fast build Java project (skip tests and checks, all configured Java projects)
+	@if [ -n "$(JAVA_DIRS)" ]; then \
+		echo "$(YELLOW)Fast building Java projects in: $(JAVA_DIRS)$(RESET)"; \
+		for dir in $(JAVA_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Fast building $$dir...$(RESET)"; \
+				cd $$dir && $(MVN) clean compile package $(MAVEN_SKIP_TESTS) $(MAVEN_QUIET); \
+				echo "$(GREEN)  Java project built successfully (fast mode): $$dir$(RESET)"; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
+		echo "$(GREEN)Java fast build completed$(RESET)"; \
+	else \
+		echo "$(BLUE)Skipping Java fast build (no Java projects configured)$(RESET)"; \
 	fi
 
-test-java: ## Run Java tests
-	@if [ -d "$(JAVA_DIR)" ]; then \
-		echo "$(YELLOW)Running Java tests...$(RESET)"; \
-		cd $(JAVA_DIR) && $(MVN) test; \
+test-java: ## Run Java tests (all configured Java projects)
+	@if [ -n "$(JAVA_DIRS)" ]; then \
+		echo "$(YELLOW)Running Java tests in: $(JAVA_DIRS)$(RESET)"; \
+		for dir in $(JAVA_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Testing $$dir...$(RESET)"; \
+				cd $$dir && $(MVN) test; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
 		echo "$(GREEN)Java tests completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Java tests (no Java project)$(RESET)"; \
+		echo "$(BLUE)Skipping Java tests (no Java projects configured)$(RESET)"; \
 	fi
 
-run-java: ## Run Java Spring Boot application
-	@if [ -d "$(JAVA_DIR)" ]; then \
-		echo "$(YELLOW)Starting Java application...$(RESET)"; \
-		echo "$(BLUE)Application will start at http://localhost:$(JAVA_APP_PORT)$(RESET)"; \
-		cd $(JAVA_DIR) && $(MVN) spring-boot:run -pl $(JAVA_MAIN_MODULE) -Dspring-boot.run.profiles=$(SPRING_PROFILE); \
-	else \
-		echo "$(BLUE)No Java application to run$(RESET)"; \
-	fi
-
-run-jar-java: ## Run Java application from JAR file
-	@if [ -d "$(JAVA_DIR)" ]; then \
-		echo "$(YELLOW)Running Java application from JAR...$(RESET)"; \
-		if [ -f "$(JAVA_DIR)/$(JAVA_MAIN_MODULE)/target/$(JAVA_ARTIFACT)" ]; then \
-			cd $(JAVA_DIR) && java -jar $(JAVA_MAIN_MODULE)/target/$(JAVA_ARTIFACT) --spring.profiles.active=$(SPRING_PROFILE); \
+run-java: ## Run Java Spring Boot application (first configured Java project)
+	@if [ -n "$(JAVA_DIRS)" ]; then \
+		first_dir=$$(echo $(JAVA_DIRS) | cut -d' ' -f1); \
+		if [ -d "$$first_dir" ]; then \
+			echo "$(YELLOW)Starting Java application from $$first_dir...$(RESET)"; \
+			echo "$(BLUE)Application will start at http://localhost:$(JAVA_APP_PORT)$(RESET)"; \
+			if [ $$(echo $(JAVA_DIRS) | wc -w) -gt 1 ]; then \
+				echo "$(BLUE)Note: Multiple Java projects detected ($(JAVA_DIRS)). Running first one: $$first_dir$(RESET)"; \
+			fi; \
+			cd $$first_dir && $(MVN) spring-boot:run -pl $(JAVA_MAIN_MODULE) -Dspring-boot.run.profiles=$(SPRING_PROFILE); \
 		else \
-			echo "$(RED)JAR file not found. Run 'make build-java' first.$(RESET)"; \
-			exit 1; \
+			echo "$(RED)Java directory $$first_dir does not exist$(RESET)"; \
 		fi; \
+	else \
+		echo "$(BLUE)No Java applications configured to run$(RESET)"; \
+	fi
+
+run-jar-java: ## Run Java application from JAR file (first configured Java project)
+	@if [ -n "$(JAVA_DIRS)" ]; then \
+		first_dir=$$(echo $(JAVA_DIRS) | cut -d' ' -f1); \
+		if [ -d "$$first_dir" ]; then \
+			echo "$(YELLOW)Running Java application from JAR in $$first_dir...$(RESET)"; \
+			if [ -f "$$first_dir/$(JAVA_MAIN_MODULE)/target/$(JAVA_ARTIFACT)" ]; then \
+				cd $$first_dir && java -jar $(JAVA_MAIN_MODULE)/target/$(JAVA_ARTIFACT) --spring.profiles.active=$(SPRING_PROFILE); \
+			else \
+				echo "$(RED)JAR file not found in $$first_dir. Run 'make build-java' first.$(RESET)"; \
+				exit 1; \
+			fi; \
+		else \
+			echo "$(RED)Java directory $$first_dir does not exist$(RESET)"; \
+		fi; \
+	else \
+		echo "$(BLUE)No Java applications configured to run$(RESET)"; \
 	fi
 
 # =============================================================================

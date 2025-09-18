@@ -2,15 +2,30 @@
 # TypeScript Language Support - Makefile Module
 # =============================================================================
 
-# TypeScript tool definitions
+# TypeScript project variables - use dynamic directories from config
 NPM := npm
 PRETTIER := prettier
 ESLINT := eslint
 TSC := typescript
 
-# TypeScript project variables
-TS_DIR := frontend-ts
-TS_FILES := $(shell find frontend-ts -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null || true)
+# Get all TypeScript directories from config - use shell directly to avoid function call issues
+TS_DIRS := $(shell \
+	if [ -n "$(LOCALCI_CONFIG)" ] && [ -f "$(LOCALCI_CONFIG)" ]; then \
+		scripts/parse_localci.sh enabled typescript $(LOCALCI_CONFIG) | cut -d'|' -f2 | tr '\n' ' '; \
+	else \
+		echo "demo-apps/frontends/ts"; \
+	fi)
+
+TS_PRIMARY_DIR := $(shell echo $(TS_DIRS) | cut -d' ' -f1)
+
+# For legacy compatibility, use primary dir for single-dir variables
+TS_DIR := $(TS_PRIMARY_DIR)
+TS_FILES := $(shell \
+	for dir in $(TS_DIRS); do \
+		if [ -d "$$dir" ]; then \
+			find $$dir -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" 2>/dev/null || true; \
+		fi; \
+	done)
 
 # =============================================================================
 # TypeScript Tool Installation
@@ -53,30 +68,46 @@ check-tools-typescript: ## Check TypeScript development tools
 # TypeScript Code Formatting
 # =============================================================================
 
-fmt-typescript: ## Format TypeScript code
-	@if [ -d "$(TS_DIR)" ]; then \
-		echo "$(YELLOW)Formatting TypeScript code...$(RESET)"; \
-		cd $(TS_DIR) && npx $(PRETTIER) --write "**/*.{ts,tsx,js,jsx,json,md}"; \
-		echo "$(GREEN)TypeScript code formatted$(RESET)"; \
+fmt-typescript: ## Format TypeScript code (all configured TypeScript projects)
+	@if [ -n "$(TS_DIRS)" ]; then \
+		echo "$(YELLOW)Formatting TypeScript code in: $(TS_DIRS)$(RESET)"; \
+		for dir in $(TS_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
+				cd $$dir && npx $(PRETTIER) --write "**/*.{ts,tsx,js,jsx,json,md}"; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
+		echo "$(GREEN)TypeScript code formatting completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping TypeScript formatting (no TypeScript project)$(RESET)"; \
+		echo "$(BLUE)Skipping TypeScript formatting (no TypeScript projects configured)$(RESET)"; \
 	fi
 
 # =============================================================================
 # TypeScript Code Quality Checks
 # =============================================================================
 
-check-typescript: ## Check TypeScript code quality
-	@if [ -d "$(TS_DIR)" ]; then \
-		echo "$(YELLOW)Checking TypeScript code quality...$(RESET)"; \
-		cd $(TS_DIR); \
-		echo "$(YELLOW)Running TypeScript type checking...$(RESET)" && \
-		npm run type-check:ci && \
-		echo "$(YELLOW)Running ESLint...$(RESET)" && \
-		npm run lint && \
+check-typescript: ## Check TypeScript code quality (all configured TypeScript projects)
+	@if [ -n "$(TS_DIRS)" ]; then \
+		echo "$(YELLOW)Checking TypeScript code quality in: $(TS_DIRS)$(RESET)"; \
+		for dir in $(TS_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
+				cd $$dir; \
+				echo "$(YELLOW)    Running TypeScript type checking...$(RESET)" && \
+				npm run type-check:ci && \
+				echo "$(YELLOW)    Running ESLint...$(RESET)" && \
+				npm run lint; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
 		echo "$(GREEN)TypeScript code quality checks completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping TypeScript checks (no TypeScript project)$(RESET)"; \
+		echo "$(BLUE)Skipping TypeScript checks (no TypeScript projects configured)$(RESET)"; \
 	fi
 
 # Show TypeScript project information

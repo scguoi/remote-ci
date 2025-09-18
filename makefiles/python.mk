@@ -2,7 +2,7 @@
 # Python Language Support - Makefile Module
 # =============================================================================
 
-# Python tool definitions (using virtual environment)
+# Python project variables - use dynamic directories from config
 PYTHON := /Users/scguo/.virtualenvs/mydemos/bin/python
 BLACK := black
 ISORT := isort
@@ -10,9 +10,24 @@ FLAKE8 := flake8
 MYPY := mypy
 PYLINT := pylint
 
-# Python project variables
-PYTHON_DIR := backend-python
-PYTHON_FILES := $(shell find backend-python -name "*.py" 2>/dev/null || true)
+# Get all Python directories from config - use shell directly to avoid function call issues
+PYTHON_DIRS := $(shell \
+	if [ -n "$(LOCALCI_CONFIG)" ] && [ -f "$(LOCALCI_CONFIG)" ]; then \
+		scripts/parse_localci.sh enabled python $(LOCALCI_CONFIG) | cut -d'|' -f2 | tr '\n' ' '; \
+	else \
+		echo "demo-apps/backends/python"; \
+	fi)
+
+PYTHON_PRIMARY_DIR := $(shell echo $(PYTHON_DIRS) | cut -d' ' -f1)
+
+# For legacy compatibility, use primary dir for single-dir variables
+PYTHON_DIR := $(PYTHON_PRIMARY_DIR)
+PYTHON_FILES := $(shell \
+	for dir in $(PYTHON_DIRS); do \
+		if [ -d "$$dir" ]; then \
+			find $$dir -name "*.py" 2>/dev/null || true; \
+		fi; \
+	done)
 
 # =============================================================================
 # Python Tool Installation
@@ -48,34 +63,50 @@ check-tools-python: ## Check Python development tools
 # Python Code Formatting
 # =============================================================================
 
-fmt-python: ## Format Python code
-	@if [ -d "$(PYTHON_DIR)" ]; then \
-		echo "$(YELLOW)Formatting Python code...$(RESET)"; \
-		cd $(PYTHON_DIR) && \
-		$(PYTHON) -m $(ISORT) . && \
-		$(PYTHON) -m $(BLACK) .; \
-		echo "$(GREEN)Python code formatted$(RESET)"; \
+fmt-python: ## Format Python code (all configured Python projects)
+	@if [ -n "$(PYTHON_DIRS)" ]; then \
+		echo "$(YELLOW)Formatting Python code in: $(PYTHON_DIRS)$(RESET)"; \
+		for dir in $(PYTHON_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
+				cd $$dir && \
+				$(PYTHON) -m $(ISORT) . && \
+				$(PYTHON) -m $(BLACK) .; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
+		echo "$(GREEN)Python code formatting completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Python formatting (no Python project)$(RESET)"; \
+		echo "$(BLUE)Skipping Python formatting (no Python projects configured)$(RESET)"; \
 	fi
 
 # =============================================================================
 # Python Code Quality Checks
 # =============================================================================
 
-check-python: ## Check Python code quality
-	@if [ -d "$(PYTHON_DIR)" ]; then \
-		echo "$(YELLOW)Checking Python code quality...$(RESET)"; \
-		cd $(PYTHON_DIR) && \
-		echo "$(YELLOW)Running flake8...$(RESET)" && \
-		$(PYTHON) -m $(FLAKE8) . && \
-		echo "$(YELLOW)Running mypy...$(RESET)" && \
-		$(PYTHON) -m $(MYPY) . && \
-		echo "$(YELLOW)Running pylint...$(RESET)" && \
-		$(PYTHON) -m $(PYLINT) --fail-under=8.0 *.py; \
+check-python: ## Check Python code quality (all configured Python projects)
+	@if [ -n "$(PYTHON_DIRS)" ]; then \
+		echo "$(YELLOW)Checking Python code quality in: $(PYTHON_DIRS)$(RESET)"; \
+		for dir in $(PYTHON_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
+				cd $$dir && \
+				echo "$(YELLOW)    Running flake8...$(RESET)" && \
+				$(PYTHON) -m $(FLAKE8) . && \
+				echo "$(YELLOW)    Running mypy...$(RESET)" && \
+				$(PYTHON) -m $(MYPY) . && \
+				echo "$(YELLOW)    Running pylint...$(RESET)" && \
+				$(PYTHON) -m $(PYLINT) --fail-under=8.0 *.py; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
 		echo "$(GREEN)Python code quality checks completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Python checks (no Python project)$(RESET)"; \
+		echo "$(BLUE)Skipping Python checks (no Python projects configured)$(RESET)"; \
 	fi
 
 # Show Python project information
@@ -127,13 +158,21 @@ check-pylint-python: ## Run pylint static analysis
 # Python Testing and Coverage
 # =============================================================================
 
-test-python: ## Run Python tests
-	@if [ -d "$(PYTHON_DIR)" ]; then \
-		echo "$(YELLOW)Running Python tests...$(RESET)"; \
-		cd $(PYTHON_DIR) && $(PYTHON) -m pytest tests/ -v; \
+test-python: ## Run Python tests (all configured Python projects)
+	@if [ -n "$(PYTHON_DIRS)" ]; then \
+		echo "$(YELLOW)Running Python tests in: $(PYTHON_DIRS)$(RESET)"; \
+		for dir in $(PYTHON_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Testing $$dir...$(RESET)"; \
+				cd $$dir && $(PYTHON) -m pytest tests/ -v; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
 		echo "$(GREEN)Python tests completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Python tests (no Python project)$(RESET)"; \
+		echo "$(BLUE)Skipping Python tests (no Python projects configured)$(RESET)"; \
 	fi
 
 coverage-python: ## Run Python tests with coverage
@@ -150,12 +189,20 @@ coverage-python: ## Run Python tests with coverage
 # Python Application Management
 # =============================================================================
 
-run-python: ## Run Python FastAPI service
-	@if [ -d "$(PYTHON_DIR)" ]; then \
-		echo "$(YELLOW)Starting Python FastAPI service... (Ctrl+C to stop)$(RESET)"; \
-		cd $(PYTHON_DIR) && $(PYTHON) main.py; \
+run-python: ## Run Python FastAPI service (first configured Python project)
+	@if [ -n "$(PYTHON_DIRS)" ]; then \
+		first_dir=$$(echo $(PYTHON_DIRS) | cut -d' ' -f1); \
+		if [ -d "$$first_dir" ]; then \
+			echo "$(YELLOW)Starting Python FastAPI service from $$first_dir... (Ctrl+C to stop)$(RESET)"; \
+			if [ $$(echo $(PYTHON_DIRS) | wc -w) -gt 1 ]; then \
+				echo "$(BLUE)Note: Multiple Python projects detected ($(PYTHON_DIRS)). Running first one: $$first_dir$(RESET)"; \
+			fi; \
+			cd $$first_dir && $(PYTHON) main.py; \
+		else \
+			echo "$(RED)Python directory $$first_dir does not exist$(RESET)"; \
+		fi; \
 	else \
-		echo "$(BLUE)No Python project to run$(RESET)"; \
+		echo "$(BLUE)No Python projects configured to run$(RESET)"; \
 	fi
 
 install-deps-python: ## Install Python dependencies

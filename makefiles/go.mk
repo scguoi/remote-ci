@@ -10,17 +10,34 @@ GOCYCLO := gocyclo
 STATICCHECK := staticcheck
 GOLANGCI_LINT := golangci-lint
 
-# Go project variables
+# Go project variables - use dynamic directories from config
 GO := go
-GOFILES := $(shell find backend-go -name "*.go" 2>/dev/null || true)
-GOMODULES := $(shell cd backend-go && $(GO) list -m 2>/dev/null || echo "No Go module")
 
-# Go app paths
-GO_DIR := backend-go
-GO_CMD := $(GO_DIR)/cmd/server
-GO_BIN_DIR := $(GO_DIR)/bin
-GO_BIN := $(GO_BIN_DIR)/server
-COVER_DIR := $(GO_DIR)/coverage
+# Get all Go directories from config - use shell directly to avoid function call issues
+GO_DIRS := $(shell \
+	if [ -n "$(LOCALCI_CONFIG)" ] && [ -f "$(LOCALCI_CONFIG)" ]; then \
+		scripts/parse_localci.sh enabled go $(LOCALCI_CONFIG) | cut -d'|' -f2 | tr '\n' ' '; \
+	else \
+		echo "demo-apps/backends/go"; \
+	fi)
+
+GO_PRIMARY_DIR := $(shell echo $(GO_DIRS) | cut -d' ' -f1)
+
+# For legacy compatibility, use primary dir for single-dir variables
+GO_DIR := $(GO_PRIMARY_DIR)
+GOFILES := $(shell \
+	for dir in $(GO_DIRS); do \
+		if [ -d "$$dir" ]; then \
+			find $$dir -name "*.go" 2>/dev/null || true; \
+		fi; \
+	done)
+GOMODULES := $(shell if [ -n "$(GO_PRIMARY_DIR)" ] && [ -d "$(GO_PRIMARY_DIR)" ]; then cd $(GO_PRIMARY_DIR) && $(GO) list -m 2>/dev/null || echo "No Go module"; fi)
+
+# Go app paths - use primary directory for legacy compatibility
+GO_CMD := $(if $(GO_PRIMARY_DIR),$(GO_PRIMARY_DIR)/cmd/server,)
+GO_BIN_DIR := $(if $(GO_PRIMARY_DIR),$(GO_PRIMARY_DIR)/bin,)
+GO_BIN := $(if $(GO_PRIMARY_DIR),$(GO_BIN_DIR)/server,)
+COVER_DIR := $(if $(GO_PRIMARY_DIR),$(GO_PRIMARY_DIR)/coverage,)
 
 # =============================================================================
 # Go Tool Installation
@@ -57,66 +74,76 @@ check-tools-go: ## Check Go development tools
 # Go Code Formatting
 # =============================================================================
 
-fmt-go: ## Format Go code
-	@if [ -d "$(GO_DIR)" ]; then \
-		echo "$(YELLOW)Formatting Go code...$(RESET)"; \
-		if [ -n "$(GOFILES)" ]; then \
-			if command -v $(GOIMPORTS) >/dev/null 2>&1; then \
-				$(GOIMPORTS) -w $(GOFILES) >/dev/null 2>&1 || true; \
+fmt-go: ## Format Go code (all configured Go projects)
+	@if [ -n "$(GO_DIRS)" ]; then \
+		echo "$(YELLOW)Formatting Go code in: $(GO_DIRS)$(RESET)"; \
+		for dir in $(GO_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
+				gofiles="$$(find $$dir -name "*.go" 2>/dev/null || true)"; \
+				if [ -n "$$gofiles" ]; then \
+					if command -v $(GOIMPORTS) >/dev/null 2>&1; then \
+						$(GOIMPORTS) -w $$gofiles >/dev/null 2>&1 || true; \
+					fi; \
+					if command -v $(GOFUMPT) >/dev/null 2>&1; then \
+						$(GOFUMPT) -w $$gofiles >/dev/null 2>&1 || true; \
+					fi; \
+					if command -v $(GOLINES) >/dev/null 2>&1; then \
+						$(GOLINES) -w -m 120 $$gofiles >/dev/null 2>&1 || true; \
+					fi; \
+				else \
+					echo "$(BLUE)    No Go files found in $$dir$(RESET)"; \
+				fi; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
 			fi; \
-			if command -v $(GOFUMPT) >/dev/null 2>&1; then \
-				$(GOFUMPT) -w $(GOFILES) >/dev/null 2>&1 || true; \
-			fi; \
-			if command -v $(GOLINES) >/dev/null 2>&1; then \
-				$(GOLINES) -w -m 120 $(GOFILES) >/dev/null 2>&1 || true; \
-			fi; \
-		else \
-			echo "$(BLUE)No Go files found to format$(RESET)"; \
-		fi; \
-		echo "$(GREEN)Go code formatted$(RESET)"; \
+		done; \
+		echo "$(GREEN)Go code formatting completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Go formatting (no Go project)$(RESET)"; \
+		echo "$(BLUE)Skipping Go formatting (no Go projects configured)$(RESET)"; \
 	fi
 
 # =============================================================================
 # Go Code Quality Checks
 # =============================================================================
 
-check-go: ## Check Go code quality
-	@if [ -d "$(GO_DIR)" ]; then \
-		echo "$(YELLOW)Checking Go code quality...$(RESET)"; \
-		cd backend-go; \
-		if command -v $(GOCYCLO) >/dev/null 2>&1; then \
-			echo "$(YELLOW)Running gocyclo...$(RESET)"; \
-			$(GOCYCLO) -over 10 . || (echo "$(RED)High cyclomatic complexity detected$(RESET)" && exit 1); \
-		else \
-			echo "$(YELLOW)gocyclo not available, skipping complexity check$(RESET)"; \
-		fi; \
-		if command -v $(STATICCHECK) >/dev/null 2>&1; then \
-			echo "$(YELLOW)Running staticcheck...$(RESET)"; \
-			PKGS="$$(go list ./... 2>/dev/null)"; \
-			if [ -n "$$PKGS" ]; then \
-				$(STATICCHECK) $$PKGS 2>/dev/null || true; \
+check-go: ## Check Go code quality (all configured Go projects)
+	@if [ -n "$(GO_DIRS)" ]; then \
+		echo "$(YELLOW)Checking Go code quality in: $(GO_DIRS)$(RESET)"; \
+		for dir in $(GO_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
+				cd $$dir; \
+				if command -v $(GOCYCLO) >/dev/null 2>&1; then \
+					echo "$(YELLOW)    Running gocyclo...$(RESET)"; \
+					$(GOCYCLO) -over 10 . || (echo "$(RED)High cyclomatic complexity detected$(RESET)" && exit 1); \
+				fi; \
+				if command -v $(STATICCHECK) >/dev/null 2>&1; then \
+					echo "$(YELLOW)    Running staticcheck...$(RESET)"; \
+					PKGS="$$(go list ./... 2>/dev/null)"; \
+					if [ -n "$$PKGS" ]; then \
+						$(STATICCHECK) $$PKGS 2>/dev/null || true; \
+					else \
+						echo "$(BLUE)    No Go packages found; skipping staticcheck$(RESET)"; \
+					fi; \
+				fi; \
+				if command -v $(GOLANGCI_LINT) >/dev/null 2>&1; then \
+					echo "$(YELLOW)    Running golangci-lint...$(RESET)"; \
+					PKGS="$$(go list ./... 2>/dev/null)"; \
+					if [ -n "$$PKGS" ]; then \
+						GOCACHE=$$(pwd)/.gocache GOLANGCI_LINT_CACHE=$$(pwd)/.golangci-cache $(GOLANGCI_LINT) run ./... 2>/dev/null || true; \
+					else \
+						echo "$(BLUE)    No Go packages found; skipping golangci-lint$(RESET)"; \
+					fi; \
+				fi; \
+				cd - > /dev/null; \
 			else \
-				echo "$(BLUE)No Go packages found; skipping staticcheck$(RESET)"; \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
 			fi; \
-		else \
-			echo "$(YELLOW)staticcheck not available, skipping static analysis$(RESET)"; \
-		fi; \
-		if command -v $(GOLANGCI_LINT) >/dev/null 2>&1; then \
-			echo "$(YELLOW)Running golangci-lint...$(RESET)"; \
-			PKGS="$$(go list ./... 2>/dev/null)"; \
-			if [ -n "$$PKGS" ]; then \
-				GOCACHE=$$(pwd)/.gocache GOLANGCI_LINT_CACHE=$$(pwd)/.golangci-cache $(GOLANGCI_LINT) run ./... 2>/dev/null || true; \
-			else \
-				echo "$(BLUE)No Go packages found; skipping golangci-lint$(RESET)"; \
-			fi; \
-		else \
-			echo "$(YELLOW)golangci-lint not available, skipping lint check$(RESET)"; \
-		fi; \
+		done; \
 		echo "$(GREEN)Go code quality checks completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Go checks (no Go project)$(RESET)"; \
+		echo "$(BLUE)Skipping Go checks (no Go projects configured)$(RESET)"; \
 	fi
 
 # =============================================================================
@@ -201,41 +228,76 @@ fmt-check-go: ## Check if Go code format meets standards (without modifying file
 # Go Build, Test, and Run
 # =============================================================================
 
-build-go: ## Build Go service binary
-	@if [ -d "$(GO_DIR)" ]; then \
-		echo "$(YELLOW)Building Go service...$(RESET)"; \
-		mkdir -p $(GO_BIN_DIR); \
-		cd $(GO_DIR) && GOCACHE=$$(pwd)/.gocache $(GO) build -o bin/server ./cmd/server; \
-		echo "$(GREEN)Built: $(GO_BIN)$(RESET)"; \
+build-go: ## Build Go service binary (all configured Go projects)
+	@if [ -n "$(GO_DIRS)" ]; then \
+		echo "$(YELLOW)Building Go services in: $(GO_DIRS)$(RESET)"; \
+		for dir in $(GO_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Building $$dir...$(RESET)"; \
+				cd $$dir && \
+				mkdir -p bin && \
+				GOCACHE=$$(pwd)/.gocache $(GO) build -o bin/server ./cmd/server && \
+				echo "$(GREEN)  Built: $$dir/bin/server$(RESET)"; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
+		echo "$(GREEN)Go build completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Go build (no Go project)$(RESET)"; \
+		echo "$(BLUE)Skipping Go build (no Go projects configured)$(RESET)"; \
 	fi
 
-run-go: ## Run Go service locally (loads backend-go/.env)
-	@if [ -d "$(GO_DIR)" ]; then \
-		echo "$(YELLOW)Starting Go service... (Ctrl+C to stop)$(RESET)"; \
-		cd $(GO_DIR) && $(GO) run ./cmd/server; \
+run-go: ## Run Go service locally (first configured Go project)
+	@if [ -n "$(GO_DIRS)" ]; then \
+		first_dir=$$(echo $(GO_DIRS) | cut -d' ' -f1); \
+		if [ -d "$$first_dir" ]; then \
+			echo "$(YELLOW)Starting Go service from $$first_dir... (Ctrl+C to stop)$(RESET)"; \
+			if [ $$(echo $(GO_DIRS) | wc -w) -gt 1 ]; then \
+				echo "$(BLUE)Note: Multiple Go projects detected ($(GO_DIRS)). Running first one: $$first_dir$(RESET)"; \
+			fi; \
+			cd $$first_dir && $(GO) run ./cmd/server; \
+		else \
+			echo "$(RED)Go directory $$first_dir does not exist$(RESET)"; \
+		fi; \
 	else \
-		echo "$(BLUE)No Go project to run$(RESET)"; \
+		echo "$(BLUE)No Go projects configured to run$(RESET)"; \
 	fi
 
-test-go: ## Run Go tests
-	@if [ -d "$(GO_DIR)" ]; then \
-		echo "$(YELLOW)Running Go tests...$(RESET)"; \
-		cd $(GO_DIR) && GOCACHE=$$(pwd)/.gocache $(GO) test ./internal/... -v; \
+test-go: ## Run Go tests (all configured Go projects)
+	@if [ -n "$(GO_DIRS)" ]; then \
+		echo "$(YELLOW)Running Go tests in: $(GO_DIRS)$(RESET)"; \
+		for dir in $(GO_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "$(YELLOW)  Testing $$dir...$(RESET)"; \
+				cd $$dir && GOCACHE=$$(pwd)/.gocache $(GO) test ./internal/... -v; \
+				cd - > /dev/null; \
+			else \
+				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
+			fi; \
+		done; \
 		echo "$(GREEN)Go tests completed$(RESET)"; \
 	else \
-		echo "$(BLUE)Skipping Go tests (no Go project)$(RESET)"; \
+		echo "$(BLUE)Skipping Go tests (no Go projects configured)$(RESET)"; \
 	fi
 
-coverage-go: ## Run Go tests with coverage report (text + HTML)
-	@if [ -d "$(GO_DIR)" ]; then \
-		echo "$(YELLOW)Running Go coverage...$(RESET)"; \
-		mkdir -p $(COVER_DIR); \
-		cd $(GO_DIR) && GOCACHE=$$(pwd)/.gocache $(GO) test -covermode=atomic -coverprofile=coverage/coverage.out ./internal/... && \
-		$(GO) tool cover -func=coverage/coverage.out && \
-		$(GO) tool cover -html=coverage/coverage.out -o coverage/coverage.html; \
-		echo "$(GREEN)Coverage report: $(COVER_DIR)/coverage.out, HTML: $(COVER_DIR)/coverage.html$(RESET)"; \
+coverage-go: ## Run Go tests with coverage report (first configured Go project)
+	@if [ -n "$(GO_DIRS)" ]; then \
+		first_dir=$$(echo $(GO_DIRS) | cut -d' ' -f1); \
+		if [ -d "$$first_dir" ]; then \
+			echo "$(YELLOW)Running Go coverage for $$first_dir...$(RESET)"; \
+			if [ $$(echo $(GO_DIRS) | wc -w) -gt 1 ]; then \
+				echo "$(BLUE)Note: Multiple Go projects detected ($(GO_DIRS)). Running coverage for first one: $$first_dir$(RESET)"; \
+			fi; \
+			cd $$first_dir && \
+			mkdir -p coverage && \
+			GOCACHE=$$(pwd)/.gocache $(GO) test -covermode=atomic -coverprofile=coverage/coverage.out ./internal/... && \
+			$(GO) tool cover -func=coverage/coverage.out && \
+			$(GO) tool cover -html=coverage/coverage.out -o coverage/coverage.html; \
+			echo "$(GREEN)Coverage report: $$first_dir/coverage/coverage.out, HTML: $$first_dir/coverage/coverage.html$(RESET)"; \
+		else \
+			echo "$(RED)Go directory $$first_dir does not exist$(RESET)"; \
+		fi; \
 	else \
-		echo "$(BLUE)Skipping Go coverage (no Go project)$(RESET)"; \
+		echo "$(BLUE)Skipping Go coverage (no Go projects configured)$(RESET)"; \
 	fi
