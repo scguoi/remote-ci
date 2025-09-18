@@ -120,7 +120,18 @@ smart_check: ## 🔍 智能代码质量检查 (检测活跃项目)
 		done; \
 	fi
 	@echo "$(YELLOW)检查注释语言规范...$(RESET)"
-	@$(MAKE) --no-print-directory check-comments
+	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
+		for lang in $(ACTIVE_PROJECTS); do \
+			case $$lang in \
+				go) $(MAKE) --no-print-directory check-comments-go ;; \
+				java) $(MAKE) --no-print-directory check-comments-java ;; \
+				python) $(MAKE) --no-print-directory check-comments-python ;; \
+				typescript) $(MAKE) --no-print-directory check-comments-typescript ;; \
+			esac; \
+		done; \
+	else \
+		$(MAKE) --no-print-directory check-comments; \
+	fi
 	@echo "$(GREEN)✅ 质量检查完成: $(ACTIVE_PROJECTS)$(RESET)"
 
 # =============================================================================
