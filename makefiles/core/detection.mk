@@ -49,30 +49,6 @@ endif
 CURRENT_CONTEXT := $(detect_current_context)
 PROJECT_COUNT := $(shell echo $(ACTIVE_PROJECTS) | wc -w | tr -d ' ')
 
-# Helper functions to get directories from config
-define get_language_dirs
-	$(shell \
-		if [ -n "$(LOCALCI_CONFIG)" ] && [ -f "$(LOCALCI_CONFIG)" ]; then \
-			scripts/parse_localci.sh enabled $(1) $(LOCALCI_CONFIG) | cut -d'|' -f2; \
-		else \
-			case "$(1)" in \
-				go) echo "demo-apps/backends/go" ;; \
-				java) echo "demo-apps/backends/java" ;; \
-				python) echo "demo-apps/backends/python" ;; \
-				typescript) echo "demo-apps/frontends/ts" ;; \
-			esac; \
-		fi \
-	)
-endef
-
-# Get first directory for a language (for legacy single-dir commands)
-define get_first_language_dir
-	$(shell \
-		dirs="$(call get_language_dirs,$(1))"; \
-		echo $$dirs | cut -d' ' -f1 \
-	)
-endef
-
 # Check if this is a multi-project environment
 IS_MULTI_PROJECT := $(shell [ "$(PROJECT_COUNT)" -gt 1 ] && echo "true" || echo "false")
 
@@ -80,20 +56,40 @@ IS_MULTI_PROJECT := $(shell [ "$(PROJECT_COUNT)" -gt 1 ] && echo "true" || echo 
 define show_project_status
 	@echo "$(BLUE)Detected Active Projects:$(RESET)"
 	@if echo "$(ACTIVE_PROJECTS)" | grep -q "go"; then \
-		go_dir="$(call get_first_language_dir,go)"; \
-		if [ -d "$$go_dir" ] && [ -f "$$go_dir/go.mod" ]; then echo "  $(GREEN)✓ Go Backend$(RESET)         ($$go_dir)"; else echo "  $(RED)✗ Go Backend$(RESET)         ($$go_dir)"; fi; \
+		if [ -n "$(GO_DIRS)" ]; then \
+			for dir in $(GO_DIRS); do \
+				if [ -d "$$dir" ]; then echo "  $(GREEN)✓ Go Backend$(RESET)         ($$dir)"; else echo "  $(RED)✗ Go Backend$(RESET)         ($$dir)"; fi; \
+			done; \
+		else \
+			echo "  $(RED)✗ Go Backend$(RESET)         (no directories configured)"; \
+		fi; \
 	fi
 	@if echo "$(ACTIVE_PROJECTS)" | grep -q "typescript"; then \
-		ts_dir="$(call get_first_language_dir,typescript)"; \
-		if [ -d "$$ts_dir" ] && [ -f "$$ts_dir/package.json" ]; then echo "  $(GREEN)✓ TypeScript Frontend$(RESET) ($$ts_dir)"; else echo "  $(RED)✗ TypeScript Frontend$(RESET) ($$ts_dir)"; fi; \
+		if [ -n "$(TS_DIRS)" ]; then \
+			for dir in $(TS_DIRS); do \
+				if [ -d "$$dir" ]; then echo "  $(GREEN)✓ TypeScript Frontend$(RESET) ($$dir)"; else echo "  $(RED)✗ TypeScript Frontend$(RESET) ($$dir)"; fi; \
+			done; \
+		else \
+			echo "  $(RED)✗ TypeScript Frontend$(RESET) (no directories configured)"; \
+		fi; \
 	fi
 	@if echo "$(ACTIVE_PROJECTS)" | grep -q "java"; then \
-		java_dir="$(call get_first_language_dir,java)"; \
-		if [ -d "$$java_dir" ] && [ -f "$$java_dir/pom.xml" ]; then echo "  $(GREEN)✓ Java Backend$(RESET)        ($$java_dir)"; else echo "  $(RED)✗ Java Backend$(RESET)        ($$java_dir)"; fi; \
+		if [ -n "$(JAVA_DIRS)" ]; then \
+			for dir in $(JAVA_DIRS); do \
+				if [ -d "$$dir" ]; then echo "  $(GREEN)✓ Java Backend$(RESET)        ($$dir)"; else echo "  $(RED)✗ Java Backend$(RESET)        ($$dir)"; fi; \
+			done; \
+		else \
+			echo "  $(RED)✗ Java Backend$(RESET)         (no directories configured)"; \
+		fi; \
 	fi
 	@if echo "$(ACTIVE_PROJECTS)" | grep -q "python"; then \
-		python_dir="$(call get_first_language_dir,python)"; \
-		if [ -d "$$python_dir" ] && [ -f "$$python_dir/main.py" ]; then echo "  $(GREEN)✓ Python Backend$(RESET)      ($$python_dir)"; else echo "  $(RED)✗ Python Backend$(RESET)      ($$python_dir)"; fi; \
+		if [ -n "$(PYTHON_DIRS)" ]; then \
+			for dir in $(PYTHON_DIRS); do \
+				if [ -d "$$dir" ]; then echo "  $(GREEN)✓ Python Backend$(RESET)      ($$dir)"; else echo "  $(RED)✗ Python Backend$(RESET)      ($$dir)"; fi; \
+			done; \
+		else \
+			echo "  $(RED)✗ Python Backend$(RESET)       (no directories configured)"; \
+		fi; \
 	fi
 	@echo "$(BLUE)Current Context:$(RESET) $(YELLOW)$(CURRENT_CONTEXT)$(RESET)"
 	@echo "$(BLUE)Intelligent Operation Target:$(RESET) $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
