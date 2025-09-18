@@ -30,6 +30,13 @@ JAVA_FILES := $(shell \
 MAVEN_OPTS := -Dmaven.test.failure.ignore=false
 MAVEN_SKIP_TESTS := -DskipTests
 MAVEN_QUIET := -q
+MAVEN_SILENT := -q -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn
+# Use MAVEN_VERBOSE=1 to see full Maven output
+ifneq ($(MAVEN_VERBOSE),1)
+MAVEN_DEFAULT_OPTS := $(MAVEN_SILENT)
+else
+MAVEN_DEFAULT_OPTS :=
+endif
 
 # Spring Boot configuration
 SPRING_PROFILE := dev
@@ -69,7 +76,7 @@ fmt-java: ## Format Java code (all configured Java projects)
 		for dir in $(JAVA_DIRS); do \
 			if [ -d "$$dir" ]; then \
 				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
-				cd $$dir && $(MVN) spotless:apply; \
+				cd $$dir && $(MVN) spotless:apply $(MAVEN_DEFAULT_OPTS); \
 				cd - > /dev/null; \
 			else \
 				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
@@ -92,13 +99,13 @@ check-java: ## Check Java code quality (all configured Java projects)
 				echo "$(YELLOW)  Processing $$dir...$(RESET)"; \
 				cd $$dir && \
 				echo "$(YELLOW)    Compiling project...$(RESET)" && \
-				$(MVN) clean compile $(MAVEN_QUIET) && \
+				$(MVN) clean compile $(MAVEN_DEFAULT_OPTS) && \
 				echo "$(YELLOW)    Running Spotless format check...$(RESET)" && \
-				$(MVN) spotless:check $(MAVEN_QUIET) && \
+				$(MVN) spotless:check $(MAVEN_DEFAULT_OPTS) && \
 				echo "$(YELLOW)    Running Checkstyle...$(RESET)" && \
-				$(MVN) checkstyle:check && \
+				$(MVN) checkstyle:check $(MAVEN_DEFAULT_OPTS) && \
 				echo "$(YELLOW)    Running SpotBugs (with fresh compilation)...$(RESET)" && \
-				$(MVN) clean compile spotbugs:check $(MAVEN_QUIET); \
+				$(MVN) clean compile spotbugs:check $(MAVEN_DEFAULT_OPTS); \
 				cd - > /dev/null; \
 			else \
 				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
@@ -117,12 +124,17 @@ info-java: ## Show Java project information
 		echo "  Java version: $$(java -version 2>&1 | head -n 1)"; \
 		echo "  Maven version: $$(mvn --version | head -n 1)"; \
 	fi
+	@echo ""
+	@echo "$(YELLOW)Maven Output Control:$(RESET)"
+	@echo "  Default: Silent mode (no INFO logs)"
+	@echo "  Verbose: MAVEN_VERBOSE=1 make <command>"
+	@echo "  Example: MAVEN_VERBOSE=1 make test-java"
 
 # Format check (without modifying files)
 fmt-check-java: ## Check if Java code format meets standards (without modifying files)
 	@echo "$(YELLOW)Checking Java code formatting...$(RESET)"
 	@if [ -d "$(JAVA_DIR)" ]; then \
-		cd $(JAVA_DIR) && $(MVN) spotless:check || (echo "$(RED)Java code is not formatted. Run 'make fmt-java' to fix.$(RESET)" && exit 1); \
+		cd $(JAVA_DIR) && $(MVN) spotless:check $(MAVEN_DEFAULT_OPTS) || (echo "$(RED)Java code is not formatted. Run 'make fmt-java' to fix.$(RESET)" && exit 1); \
 	fi
 	@echo "$(GREEN)Java code formatting checks passed$(RESET)"
 
@@ -133,14 +145,14 @@ fmt-check-java: ## Check if Java code format meets standards (without modifying 
 check-checkstyle-java: ## Run Checkstyle code style checks
 	@echo "$(YELLOW)Running Checkstyle checks...$(RESET)"
 	@if [ -d "$(JAVA_DIR)" ]; then \
-		cd $(JAVA_DIR) && $(MVN) checkstyle:check; \
+		cd $(JAVA_DIR) && $(MVN) checkstyle:check $(MAVEN_DEFAULT_OPTS); \
 		echo "$(GREEN)Checkstyle checks passed$(RESET)"; \
 	fi
 
 check-spotbugs-java: ## Run SpotBugs static analysis
 	@echo "$(YELLOW)Running SpotBugs static analysis...$(RESET)"
 	@if [ -d "$(JAVA_DIR)" ]; then \
-		cd $(JAVA_DIR) && $(MVN) clean compile spotbugs:check $(MAVEN_QUIET); \
+		cd $(JAVA_DIR) && $(MVN) clean compile spotbugs:check $(MAVEN_DEFAULT_OPTS); \
 		echo "$(GREEN)SpotBugs analysis passed$(RESET)"; \
 	fi
 
@@ -160,7 +172,7 @@ build-java: ## Build Java project (all configured Java projects)
 		for dir in $(JAVA_DIRS); do \
 			if [ -d "$$dir" ]; then \
 				echo "$(YELLOW)  Building $$dir...$(RESET)"; \
-				cd $$dir && $(MVN) clean package $(MAVEN_SKIP_TESTS) $(MAVEN_QUIET); \
+				cd $$dir && $(MVN) clean package $(MAVEN_SKIP_TESTS) $(MAVEN_DEFAULT_OPTS); \
 				echo "$(GREEN)  Java project built successfully: $$dir$(RESET)"; \
 				cd - > /dev/null; \
 			else \
@@ -178,7 +190,7 @@ build-fast-java: ## Fast build Java project (skip tests and checks, all configur
 		for dir in $(JAVA_DIRS); do \
 			if [ -d "$$dir" ]; then \
 				echo "$(YELLOW)  Fast building $$dir...$(RESET)"; \
-				cd $$dir && $(MVN) clean compile package $(MAVEN_SKIP_TESTS) $(MAVEN_QUIET); \
+				cd $$dir && $(MVN) clean compile package $(MAVEN_SKIP_TESTS) $(MAVEN_DEFAULT_OPTS); \
 				echo "$(GREEN)  Java project built successfully (fast mode): $$dir$(RESET)"; \
 				cd - > /dev/null; \
 			else \
@@ -196,7 +208,7 @@ test-java: ## Run Java tests (all configured Java projects)
 		for dir in $(JAVA_DIRS); do \
 			if [ -d "$$dir" ]; then \
 				echo "$(YELLOW)  Testing $$dir...$(RESET)"; \
-				cd $$dir && $(MVN) test; \
+				cd $$dir && $(MVN) test $(MAVEN_DEFAULT_OPTS); \
 				cd - > /dev/null; \
 			else \
 				echo "$(RED)    Directory $$dir does not exist$(RESET)"; \
@@ -249,20 +261,20 @@ run-jar-java: ## Run Java application from JAR file (first configured Java proje
 db-info-java: ## Show database migration status
 	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Checking database migration status...$(RESET)"; \
-		cd $(JAVA_DIR) && $(MVN) flyway:info -pl $(JAVA_MAIN_MODULE); \
+		cd $(JAVA_DIR) && $(MVN) flyway:info -pl $(JAVA_MAIN_MODULE) $(MAVEN_DEFAULT_OPTS); \
 	fi
 
 db-migrate-java: ## Execute database migrations
 	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Executing database migrations...$(RESET)"; \
-		cd $(JAVA_DIR) && $(MVN) flyway:migrate -pl $(JAVA_MAIN_MODULE); \
+		cd $(JAVA_DIR) && $(MVN) flyway:migrate -pl $(JAVA_MAIN_MODULE) $(MAVEN_DEFAULT_OPTS); \
 		echo "$(GREEN)Database migrations completed$(RESET)"; \
 	fi
 
 db-repair-java: ## Repair database migration state
 	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Repairing database migration state...$(RESET)"; \
-		cd $(JAVA_DIR) && $(MVN) flyway:repair -pl $(JAVA_MAIN_MODULE); \
+		cd $(JAVA_DIR) && $(MVN) flyway:repair -pl $(JAVA_MAIN_MODULE) $(MAVEN_DEFAULT_OPTS); \
 		echo "$(GREEN)Database migration state repaired$(RESET)"; \
 	fi
 
@@ -273,7 +285,7 @@ db-repair-java: ## Repair database migration state
 clean-java: ## Clean Java build artifacts
 	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Cleaning Java build artifacts...$(RESET)"; \
-		cd $(JAVA_DIR) && $(MVN) clean $(MAVEN_QUIET); \
+		cd $(JAVA_DIR) && $(MVN) clean $(MAVEN_DEFAULT_OPTS); \
 		echo "$(GREEN)Java build artifacts cleaned$(RESET)"; \
 	fi
 
@@ -310,9 +322,9 @@ quick-check-java: ## Quick Java quality check (format + style, no SpotBugs)
 	@if [ -d "$(JAVA_DIR)" ]; then \
 		echo "$(YELLOW)Running quick Java quality checks...$(RESET)"; \
 		cd $(JAVA_DIR) && \
-		$(MVN) clean compile $(MAVEN_QUIET) && \
-		$(MVN) spotless:check $(MAVEN_QUIET) && \
-		$(MVN) checkstyle:check; \
+		$(MVN) clean compile $(MAVEN_DEFAULT_OPTS) && \
+		$(MVN) spotless:check $(MAVEN_DEFAULT_OPTS) && \
+		$(MVN) checkstyle:check $(MAVEN_DEFAULT_OPTS); \
 		echo "$(GREEN)Quick Java quality checks completed$(RESET)"; \
 	fi
 

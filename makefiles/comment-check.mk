@@ -34,71 +34,127 @@ check-comments: ## Check that all comments are written in English
 	fi
 
 check-comments-go: ## Check Go comments for English language
-	@if [ -d "backend-go" ]; then \
-		echo "$(YELLOW)Checking Go comments...$(RESET)"; \
-		find backend-go -name "*.go" -exec grep -l '//' {} \; 2>/dev/null | head -5 | while read file; do \
-			echo "  Checking: $$file"; \
-			grep -n '//' "$$file" | while IFS=: read -r line_num comment; do \
-				comment_text=$$(echo "$$comment" | sed 's|^\s*//\s*||'); \
-				if echo "$$comment_text" | grep -qP '[\x{4e00}-\x{9fff}]' 2>/dev/null; then \
-					echo "    $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
-					echo "    Content: $$comment_text"; \
-				fi; \
-			done; \
+	@if [ -n "$(GO_DIRS)" ]; then \
+		echo "$(YELLOW)Checking Go comments in: $(GO_DIRS)$(RESET)"; \
+		for dir in $(GO_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "  Processing $$dir..."; \
+				find $$dir -name "*.go" -exec grep -l '//' {} \; 2>/dev/null | while read file; do \
+					echo "    Checking: $$file"; \
+					grep -n '//' "$$file" | while IFS=: read -r line_num comment; do \
+						comment_text=$$(echo "$$comment" | sed 's|^\s*//\s*||'); \
+						if [ "$$(uname)" = "Darwin" ]; then \
+							if echo "$$comment_text" | grep -qE '[一-龯]' 2>/dev/null; then \
+								echo "      $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
+								echo "      Content: $$comment_text"; \
+							fi; \
+						else \
+							if echo "$$comment_text" | grep -qP '[\x{4e00}-\x{9fff}]' 2>/dev/null; then \
+								echo "      $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
+								echo "      Content: $$comment_text"; \
+							fi; \
+						fi; \
+					done; \
+				done; \
+			else \
+				echo "  $(RED)Directory $$dir does not exist$(RESET)"; \
+			fi; \
 		done; \
 	else \
-		echo "$(BLUE)Skipping Go comment check (no Go project)$(RESET)"; \
+		echo "$(BLUE)Skipping Go comment check (no Go projects configured)$(RESET)"; \
 	fi
 
 check-comments-java: ## Check Java comments for English language
-	@if [ -d "backend-java" ]; then \
-		echo "$(YELLOW)Checking Java comments...$(RESET)"; \
-		find backend-java -name "*.java" -exec grep -l '//' {} \; 2>/dev/null | head -5 | while read file; do \
-			echo "  Checking: $$file"; \
-			grep -n '//' "$$file" | while IFS=: read -r line_num comment; do \
-				comment_text=$$(echo "$$comment" | sed 's|^\s*//\s*||'); \
-				if echo "$$comment_text" | grep -qP '[\x{4e00}-\x{9fff}]' 2>/dev/null; then \
-					echo "    $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
-					echo "    Content: $$comment_text"; \
-				fi; \
-			done; \
+	@if [ -n "$(JAVA_DIRS)" ]; then \
+		echo "$(YELLOW)Checking Java comments in: $(JAVA_DIRS)$(RESET)"; \
+		for dir in $(JAVA_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "  Processing $$dir..."; \
+				find $$dir -name "*.java" -exec grep -l '//' {} \; 2>/dev/null | while read file; do \
+					echo "    Checking: $$file"; \
+					grep -n '//' "$$file" | while IFS=: read -r line_num comment; do \
+						comment_text=$$(echo "$$comment" | sed 's|^\s*//\s*||'); \
+						if [ "$$(uname)" = "Darwin" ]; then \
+							if echo "$$comment_text" | grep -qE '[一-龯]' 2>/dev/null; then \
+								echo "      $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
+								echo "      Content: $$comment_text"; \
+							fi; \
+						else \
+							if echo "$$comment_text" | grep -qP '[\x{4e00}-\x{9fff}]' 2>/dev/null; then \
+								echo "      $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
+								echo "      Content: $$comment_text"; \
+							fi; \
+						fi; \
+					done; \
+				done; \
+			else \
+				echo "  $(RED)Directory $$dir does not exist$(RESET)"; \
+			fi; \
 		done; \
 	else \
-		echo "$(BLUE)Skipping Java comment check (no Java project)$(RESET)"; \
+		echo "$(BLUE)Skipping Java comment check (no Java projects configured)$(RESET)"; \
 	fi
 
 check-comments-python: ## Check Python comments for English language
-	@if [ -d "backend-python" ]; then \
-		echo "$(YELLOW)Checking Python comments...$(RESET)"; \
-		find backend-python -name "*.py" -exec grep -l '#' {} \; 2>/dev/null | head -5 | while read file; do \
-			echo "  Checking: $$file"; \
-			grep -n '#' "$$file" | while IFS=: read -r line_num comment; do \
-				comment_text=$$(echo "$$comment" | sed 's|^\s*#\s*||'); \
-				if echo "$$comment_text" | grep -qP '[\x{4e00}-\x{9fff}]' 2>/dev/null; then \
-					echo "    $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
-					echo "    Content: $$comment_text"; \
-				fi; \
-			done; \
+	@if [ -n "$(PYTHON_DIRS)" ]; then \
+		echo "$(YELLOW)Checking Python comments in: $(PYTHON_DIRS)$(RESET)"; \
+		for dir in $(PYTHON_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "  Processing $$dir..."; \
+				find $$dir -name "*.py" -exec grep -l '#' {} \; 2>/dev/null | while read file; do \
+					echo "    Checking: $$file"; \
+					grep -n '#' "$$file" | while IFS=: read -r line_num comment; do \
+						comment_text=$$(echo "$$comment" | sed 's|^\s*#\s*||'); \
+						if [ "$$(uname)" = "Darwin" ]; then \
+							if echo "$$comment_text" | grep -qE '[一-龯]' 2>/dev/null; then \
+								echo "      $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
+								echo "      Content: $$comment_text"; \
+							fi; \
+						else \
+							if echo "$$comment_text" | grep -qP '[\x{4e00}-\x{9fff}]' 2>/dev/null; then \
+								echo "      $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
+								echo "      Content: $$comment_text"; \
+							fi; \
+						fi; \
+					done; \
+				done; \
+			else \
+				echo "  $(RED)Directory $$dir does not exist$(RESET)"; \
+			fi; \
 		done; \
 	else \
-		echo "$(BLUE)Skipping Python comment check (no Python project)$(RESET)"; \
+		echo "$(BLUE)Skipping Python comment check (no Python projects configured)$(RESET)"; \
 	fi
 
 check-comments-typescript: ## Check TypeScript comments for English language
-	@if [ -d "frontend-ts" ]; then \
-		echo "$(YELLOW)Checking TypeScript comments...$(RESET)"; \
-		find frontend-ts -name "*.ts" -o -name "*.tsx" | grep -v node_modules | head -5 | while read file; do \
-			echo "  Checking: $$file"; \
-			grep -n '//' "$$file" 2>/dev/null | while IFS=: read -r line_num comment; do \
-				comment_text=$$(echo "$$comment" | sed 's|^\s*//\s*||'); \
-				if echo "$$comment_text" | grep -qP '[\x{4e00}-\x{9fff}]' 2>/dev/null; then \
-					echo "    $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
-					echo "    Content: $$comment_text"; \
-				fi; \
-			done; \
+	@if [ -n "$(TS_DIRS)" ]; then \
+		echo "$(YELLOW)Checking TypeScript comments in: $(TS_DIRS)$(RESET)"; \
+		for dir in $(TS_DIRS); do \
+			if [ -d "$$dir" ]; then \
+				echo "  Processing $$dir..."; \
+				find $$dir -name "*.ts" -o -name "*.tsx" | grep -v node_modules | while read file; do \
+					echo "    Checking: $$file"; \
+					grep -n '//' "$$file" 2>/dev/null | while IFS=: read -r line_num comment; do \
+						comment_text=$$(echo "$$comment" | sed 's|^\s*//\s*||'); \
+						if [ "$$(uname)" = "Darwin" ]; then \
+							if echo "$$comment_text" | grep -qE '[一-龯]' 2>/dev/null; then \
+								echo "      $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
+								echo "      Content: $$comment_text"; \
+							fi; \
+						else \
+							if echo "$$comment_text" | grep -qP '[\x{4e00}-\x{9fff}]' 2>/dev/null; then \
+								echo "      $(RED)Line $$line_num: Contains Chinese characters$(RESET)"; \
+								echo "      Content: $$comment_text"; \
+							fi; \
+						fi; \
+					done; \
+				done; \
+			else \
+				echo "  $(RED)Directory $$dir does not exist$(RESET)"; \
+			fi; \
 		done; \
 	else \
-		echo "$(BLUE)Skipping TypeScript comment check (no TypeScript project)$(RESET)"; \
+		echo "$(BLUE)Skipping TypeScript comment check (no TypeScript projects configured)$(RESET)"; \
 	fi
 
 # =============================================================================
