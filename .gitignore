@@ -124,6 +124,9 @@ pids
 .localci.toml
 makefiles/legacy/enabled
 
+# code for test
+openstellar
+
 # =============================================================================
 # Security & Sensitive Data
 # =============================================================================
