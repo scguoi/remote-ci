@@ -47,7 +47,7 @@ smart_format: ## ✨ 智能代码格式化 (检测活跃项目)
 	@echo "$(BLUE)✨ 智能格式化: $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
 	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
 		echo "$(YELLOW)使用配置: $(LOCALCI_CONFIG)$(RESET)"; \
-		for lang in go java python typescript; do \
+		for lang in $(ACTIVE_PROJECTS); do \
 			apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
 			if [ -n "$$apps" ]; then \
 				for dir in $$apps; do \
@@ -90,7 +90,7 @@ smart_check: ## 🔍 智能代码质量检查 (检测活跃项目)
 	@echo "$(BLUE)🔍 智能质量检查: $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
 	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
 		echo "$(YELLOW)使用配置: $(LOCALCI_CONFIG)$(RESET)"; \
-		for lang in go java python typescript; do \
+		for lang in $(ACTIVE_PROJECTS); do \
 			apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
 			if [ -n "$$apps" ]; then \
 				for dir in $$apps; do \
@@ -144,7 +144,7 @@ smart_test: ## 🧪 智能测试运行 (检测活跃项目)
 	fi
 	@echo "$(BLUE)🧪 智能测试: $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
 	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
-		for lang in go java python typescript; do \
+		for lang in $(ACTIVE_PROJECTS); do \
 			apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
 			if [ -n "$$apps" ]; then \
 				for dir in $$apps; do \
@@ -180,7 +180,7 @@ smart_build: ## 📦 智能项目构建 (检测活跃项目)
 	fi
 	@echo "$(BLUE)📦 智能构建: $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
 	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
-		for lang in go java python typescript; do \
+		for lang in $(ACTIVE_PROJECTS); do \
 			apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
 			if [ -n "$$apps" ]; then \
 				for dir in $$apps; do \
