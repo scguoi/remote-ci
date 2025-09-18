@@ -69,7 +69,7 @@ check-comments-python: ## Check Python comments for English language
 	fi
 
 check-comments-typescript: ## Check TypeScript comments for English language
-	@if [ "$(HAS_TYPESCRIPT)" = "true" ]; then \
+	@if [ -d "frontend-ts" ]; then \
 		echo "$(YELLOW)Checking TypeScript comments...$(RESET)"; \
 		find frontend-ts -name "*.ts" -o -name "*.tsx" | grep -v node_modules | head -5 | while read file; do \
 			echo "  Checking: $$file"; \

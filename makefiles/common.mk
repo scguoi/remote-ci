@@ -46,9 +46,6 @@ fmt-all: ## Format code for all language projects
 	@make --no-print-directory fmt-python
 	@echo "$(GREEN)All projects formatted!$(RESET)"
 
-# Multi-language code quality check aggregate command
-check: check-all ## Run all code quality checks
-
 check-all: ## Check code quality for all language projects
 	@echo "$(YELLOW)Running code quality checks for all projects...$(RESET)"
 	@make --no-print-directory check-go

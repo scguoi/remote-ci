@@ -270,7 +270,6 @@ branch-setup: create-branch-helpers ## Setup branch management strategy
 	@echo "  make list-remote-branches         - List remote branches meeting conventions"
 	@echo "  make branch-help                  - Show GitHub Flow branch management help"
 	@echo ""
-	@echo "$(YELLOW)Note: For Pull Request management, see makefiles/git-pr.mk (advanced users)$(RESET)"
 
 new-branch: ## Create branch with type/name format (usage: make new-branch type=feature name=user-auth)
 	@.git/git-branch-helpers.sh new-branch $(type) $(name)
