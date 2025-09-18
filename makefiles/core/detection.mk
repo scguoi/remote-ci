@@ -43,11 +43,11 @@ endef
 # Intelligent variables (use localci config if exists)
 ifeq ($(strip $(LOCALCI_CONFIG)),)
   ACTIVE_PROJECTS := $(detect_active_projects)
+  PROJECT_COUNT := $(shell echo $(ACTIVE_PROJECTS) | wc -w | tr -d ' ')
 else
   ACTIVE_PROJECTS := $(shell scripts/parse_localci.sh langs $(LOCALCI_CONFIG))
+  PROJECT_COUNT := $(shell scripts/parse_localci.sh all $(LOCALCI_CONFIG) | grep -c "true" | tr -d ' ')
 endif
-CURRENT_CONTEXT := $(detect_current_context)
-PROJECT_COUNT := $(shell echo $(ACTIVE_PROJECTS) | wc -w | tr -d ' ')
 
 # Check if this is a multi-project environment
 IS_MULTI_PROJECT := $(shell [ "$(PROJECT_COUNT)" -gt 1 ] && echo "true" || echo "false")

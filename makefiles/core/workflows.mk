@@ -53,16 +53,10 @@ smart_format: ## ✨ Intelligent code formatting (detects active projects)
 				for dir in $$apps; do \
 					echo "  - Formatting($$lang): $$dir"; \
 					case $$lang in \
-						go) \
-							if [ -d "$$dir" ]; then \
-								FILES="$$(cd $$dir && find . -name '*.go' 2>/dev/null)"; \
-								if command -v goimports >/dev/null 2>&1 && [ -n "$$FILES" ]; then (cd $$dir && goimports -w $$FILES || true); fi; \
-								if command -v gofumpt >/dev/null 2>&1 && [ -n "$$FILES" ]; then (cd $$dir && gofumpt -w $$FILES || true); fi; \
-								if command -v golines >/dev/null 2>&1 && [ -n "$$FILES" ]; then (cd $$dir && golines -w -m 120 $$FILES || true); fi; \
-							fi ;; \
-						java) if [ -d "$$dir" ]; then (cd $$dir && mvn spotless:apply); fi ;; \
-						python) if [ -d "$$dir" ]; then (cd $$dir && $(PYTHON) -m isort . && $(PYTHON) -m black .); fi ;; \
-						typescript) if [ -d "$$dir" ]; then (cd $$dir && npx prettier --write "**/*.{ts,tsx,js,jsx,json,md}"); fi ;; \
+						go) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory fmt-go; fi ;; \
+						java) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory fmt-java; fi ;; \
+						python) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory fmt-python; fi ;; \
+						typescript) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory fmt-typescript; fi ;; \
 					esac; \
 				done; \
 			fi; \
@@ -96,15 +90,10 @@ smart_check: ## 🔍 Intelligent code quality check (detect active projects)
 				for dir in $$apps; do \
 					echo "  - Checking($$lang): $$dir"; \
 					case $$lang in \
-						go) if [ -d "$$dir" ]; then \
-							( cd $$dir; \
-							if command -v gocyclo >/dev/null 2>&1; then echo "    • gocyclo"; gocyclo -over 10 . || true; fi; \
-							if command -v staticcheck >/dev/null 2>&1; then echo "    • staticcheck"; PKGS="$$(go list ./... 2>/dev/null)"; [ -n "$$PKGS" ] && staticcheck $$PKGS || true; fi; \
-							if command -v golangci-lint >/dev/null 2>&1; then echo "    • golangci-lint"; golangci-lint run ./... || true; fi ); \
-						fi ;; \
-						java) if [ -d "$$dir" ]; then (cd $$dir && mvn clean compile -q && mvn spotless:check -q && mvn checkstyle:check); fi ;; \
-						python) if [ -d "$$dir" ]; then (cd $$dir && $(PYTHON) -m flake8 . && $(PYTHON) -m mypy . && $(PYTHON) -m pylint --fail-under=8.0 *.py || true); fi ;; \
-						typescript) if [ -d "$$dir" ]; then (cd $$dir && npm run type-check:ci && npm run lint); fi ;; \
+						go) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory check-go; fi ;; \
+						java) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory check-java; fi ;; \
+						python) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory check-python; fi ;; \
+						typescript) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory check-typescript; fi ;; \
 					esac; \
 				done; \
 			fi; \
@@ -150,10 +139,10 @@ smart_test: ## 🧪 Intelligent test execution (detect active projects)
 				for dir in $$apps; do \
 					echo "  - Testing($$lang): $$dir"; \
 					case $$lang in \
-						go) if [ -d "$$dir" ]; then (cd $$dir && GOCACHE=$$(pwd)/.gocache go test ./... -v || true); fi ;; \
-						java) if [ -d "$$dir" ]; then (cd $$dir && mvn test); fi ;; \
-						python) if [ -d "$$dir" ]; then (cd $$dir && $(PYTHON) -m pytest -v || true); fi ;; \
-						typescript) : ;; \
+						go) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory test-go; fi ;; \
+						java) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory test-java; fi ;; \
+						python) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory test-python; fi ;; \
+						typescript) echo "    Skipping TypeScript tests (not configured yet)" ;; \
 					esac; \
 				done; \
 			fi; \
@@ -186,10 +175,10 @@ smart_build: ## 📦 Intelligent project build (detect active projects)
 				for dir in $$apps; do \
 					echo "  - Building($$lang): $$dir"; \
 					case $$lang in \
-						go) if [ -d "$$dir" ]; then (cd $$dir && go build ./... || true); fi ;; \
-						java) if [ -d "$$dir" ]; then (cd $$dir && mvn clean package -DskipTests -q); fi ;; \
+						go) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory build-go; fi ;; \
+						java) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory build-java; fi ;; \
 						python) echo "    (Python doesn't need building)" ;; \
-						typescript) if [ -d "$$dir" ]; then (cd $$dir && npm run build); fi ;; \
+						typescript) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory build-typescript; fi ;; \
 					esac; \
 				done; \
 			fi; \
@@ -234,10 +223,10 @@ smart_clean: ## 🧹 Intelligent cleanup of build artifacts
 				for dir in $$apps; do \
 					echo "  - Cleaning($$lang): $$dir"; \
 					case $$lang in \
-						go) if [ -d "$$dir" ]; then (cd $$dir && go clean && rm -f bin/* || true); fi ;; \
-						java) if [ -d "$$dir" ]; then (cd $$dir && mvn clean -q); fi ;; \
-						python) if [ -d "$$dir" ]; then (cd $$dir && find . -type d -name "__pycache__" -exec rm -rf {} \; 2>/dev/null || true); fi ;; \
-						typescript) if [ -d "$$dir" ]; then (cd $$dir && rm -rf dist node_modules/.cache || true); fi ;; \
+						go) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory clean-go; fi ;; \
+						java) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory clean-java; fi ;; \
+						python) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory clean-python; fi ;; \
+						typescript) if [ -d "$$dir" ]; then $(MAKE) --no-print-directory clean-typescript; fi ;; \
 					esac; \
 				done; \
 			fi; \
