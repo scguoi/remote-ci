@@ -8,7 +8,7 @@ enabled = true
 
 [[java.apps]]
 name = "user-web"
-dir = "backend-java/user-web"
+dir = "backend-java"
 enabled = true
 
 [[python.apps]]

@@ -42,45 +42,40 @@ function flush(){
     e = tolower(enabled)
     if (e == "") e = "true"
     if (mode == "all") {
-      print current_lang"|"name"|"dir"|"e"
+      printf "%s|%s|%s|%s\n", current_lang, name, dir, e
     } else if (mode == "enabled") {
       if (e == "true" && (want_lang == "" || want_lang == current_lang)) {
-        print name"|"dir
+        printf "%s|%s\n", name, dir
       }
     }
     if (e == "true") langs[current_lang]=1
   }
-  name=""; dir=""; enabled=""; have=0
+  name=""; dir=""; enabled=""
 }
 BEGIN{ current_lang=""; name=""; dir=""; enabled=""; have=0 }
 {
   line=$0
   sub(/#.*/,"",line)                   # strip comments
   if (line ~ /^\s*$/) next               # skip blanks
-  if (match(line,/\[\[[a-zA-Z0-9_-]+\.apps\]\]/)){
+  if (line ~ /^[[:space:]]*\[\[[^]]+\]\][[:space:]]*$/){
     # new section
     flush()
     sect=line
-    gsub(/\[|\]|\s/,"",sect)
+    sub(/^\s*\[\[/, "", sect)
+    sub(/\]\]\s*$/, "", sect)
     # sect like python.apps -> take part before dot
-    split(sect,a, ".")
+    split(sect, a, ".")
     current_lang=a[1]
     next
   }
-  if (match(line,/name\s*=\s*"[^"]+"/)){
-    match(line,/"([^"]+)"/,m)
-    name=m[1]
-    next
+  if (line ~ /^[[:space:]]*name[[:space:]]*=/){
+    val=line; sub(/^[^=]*=/, "", val); gsub(/^[ \t]+/, "", val); gsub(/[ \t]+$/, "", val); sub(/^"/, "", val); sub(/"$/, "", val); name=val; next
   }
-  if (match(line,/dir\s*=\s*"[^"]+"/)){
-    match(line,/"([^"]+)"/,m)
-    dir=m[1]
-    next
+  if (line ~ /^[[:space:]]*dir[[:space:]]*=/){
+    val=line; sub(/^[^=]*=/, "", val); gsub(/^[ \t]+/, "", val); gsub(/[ \t]+$/, "", val); sub(/^"/, "", val); sub(/"$/, "", val); dir=val; next
   }
-  if (match(line,/enabled\s*=\s*(true|false)/)){
-    match(line,/(true|false)/,m)
-    enabled=m[1]
-    next
+  if (line ~ /^[[:space:]]*enabled[[:space:]]*=/){
+    val=line; sub(/^[^=]*=/, "", val); gsub(/[ \t]+/, "", val); enabled=tolower(val); next
   }
 }
 END{
@@ -92,4 +87,3 @@ END{
   }
 }
 ' "$cfg"
-
