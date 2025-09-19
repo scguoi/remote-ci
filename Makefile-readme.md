@@ -1,236 +1,235 @@
-# 🚀 智能多语言CI/CD工具链 - 完整文档
+# 🚀 Intelligent Multi-Language CI/CD Toolchain - Complete Documentation
 
-> **统一开发工作流，支持Go、Java、Python、TypeScript四种语言**
+> **Unified development workflow supporting Go, Java, Python, TypeScript**
 
-## 🌟 项目概述
+## 🌟 Project Overview
 
-这是一个**智能多语言CI/CD开发工具链**，支持**Go、Java、Python、TypeScript**四种主流语言的统一开发工作流。
+This is an **intelligent multi-language CI/CD development toolchain** that supports unified development workflows for **Go, Java, Python, TypeScript** - four mainstream languages.
 
-### 🏢 基于openstellar多项目架构
-当前配置支持**10个实际项目**：
-- **1个Go项目**: core-tenant (租户管理)
-- **1个Java项目**: console-backend (控制台后端)
-- **7个Python项目**: 核心服务和插件系统
-- **1个TypeScript项目**: console-frontend (控制台前端)
+### 🏢 Based on openstellar Multi-Project Architecture
+Currently configured to support **10 actual projects**:
+- **1 Go project**: core-tenant (tenant management)
+- **1 Java project**: console-backend (console backend)
+- **7 Python projects**: core services and plugin system
+- **1 TypeScript project**: console-frontend (console frontend)
 
-### 🎯 革命性优化成果
+### 🎯 Core Features
 
-当前系统提供完整的多语言开发体验：
-### 🎯 核心特性
+The current system provides comprehensive multi-language development experience:
 
-**统一工作流体验**：
-- ✅ **简洁命令体系**：15个核心命令，覆盖所有开发场景
-- ✅ **零学习成本**：只需记住7个日常命令
-- ✅ **智能化操作**：`make format`自动处理所有语言和项目
-- ✅ **完美兼容**：保留所有专用语言命令
-- ✅ **统一工作流**：一套命令管理10个项目
-- ✅ **TOML配置驱动**：动态多项目支持
+**Unified workflow solution**:
+- ✅ **Concise command system**: 15 core commands covering all development scenarios
+- ✅ **Zero learning cost**: Only need to remember 7 daily commands
+- ✅ **Intelligent operations**: `make format` automatically handles all languages and projects
+- ✅ **Perfect compatibility**: Preserve all specialized language commands
+- ✅ **Unified workflow**: One set of commands manages 10 projects
+- ✅ **TOML-driven configuration**: Dynamic multi-project support
 
-## 🏗️ 系统架构
+## 🏗️ System Architecture
 
-### 智能检测引擎
+### Intelligent Detection Engine
 ```
-detection.mk  → 自动识别项目类型
-             → 计算活跃项目列表  
-             → 提供上下文感知
-```
-
-### 核心工作流引擎
-```
-workflows.mk → 智能格式化所有语言
-            → 智能质量检查
-            → 智能测试运行
-            → 智能构建流程
+detection.mk  → Automatically identify project types
+             → Calculate active project list
+             → Provide context awareness
 ```
 
-### 语言支持模块
+### Core Workflow Engine
 ```
-go.mk         → Go语言完整工具链 (7个统一命令)
-java.mk       → Java/Maven支持 (7个统一命令)
-python.mk     → Python工具链 (7个统一命令)
-typescript.mk → TypeScript/Node (7个统一命令) - 全局工具安装
-git.mk        → Git钩子管理 (21个命令)
-
-每个语言模块都实现了统一的7命令接口：
-- install-tools-{lang}  🛠️ 工具安装
-- check-tools-{lang}   ✅ 工具检测
-- fmt-{lang}          ✨ 代码格式化
-- check-{lang}        🔍 质量检查
-- test-{lang}         🧪 测试运行
-- build-{lang}        📦 项目构建
-- clean-{lang}        🧹 清理构建产物
+workflows.mk → Intelligent formatting for all languages
+            → Intelligent quality checks
+            → Intelligent test execution
+            → Intelligent build processes
 ```
 
-## 📋 完整命令参考
+### Language Support Modules
+```
+go.mk         → Go language complete toolchain (7 unified commands)
+java.mk       → Java/Maven support (7 unified commands)
+python.mk     → Python toolchain (7 unified commands)
+typescript.mk → TypeScript/Node (7 unified commands) - Global tool installation
+git.mk        → Git hook management (21 commands)
 
-### 🏆 第一层：日常核心命令 (7个) - 你只需要记住这些！
+Each language module implements a unified 7-command interface:
+- install-tools-{lang}  🛠️ Tool installation
+- check-tools-{lang}   ✅ Tool detection
+- fmt-{lang}          ✨ Code formatting
+- check-{lang}        🔍 Quality checks
+- test-{lang}         🧪 Test execution
+- build-{lang}        📦 Project building
+- clean-{lang}        🧹 Clean build artifacts
+```
 
-#### `make setup` - 🛠️ 一次性环境搭建
+## 📋 Complete Command Reference
+
+### 🏆 Tier 1: Daily Core Commands (7) - You only need to remember these!
+
+#### `make setup` - 🛠️ One-time environment setup
 ```bash
 make setup
 ```
-**功能**: 智能安装所有语言工具 + 配置Git钩子 + 设置分支策略  
-**智能特性**: 
-- 自动检测需要安装的工具
-- 跳过已安装的工具
-- 配置最佳实践的Git钩子
+**Function**: Intelligently install all language tools + configure Git hooks + set branch strategy
+**Intelligent features**:
+- Auto-detect tools to install
+- Skip already installed tools
+- Configure best-practice Git hooks
 
-#### `make format` - ✨ 智能代码格式化
+#### `make format` - ✨ Intelligent code formatting
 ```bash
 make format
 ```
-**功能**: 自动检测并格式化所有4种语言的代码  
-**智能特性**:
-- Go: `gofmt` + `goimports` + `gofumpt` + `golines` (在openstellar/core/tenant)
-- Java: Maven `spotless:apply` (在openstellar/console/backend)
-- Python: `black` + `isort` (在7个Python项目)
-- TypeScript: `prettier` (全局安装，在openstellar/console/frontend)
+**Function**: Automatically detect and format code for all 4 languages
+**Intelligent features**:
+- Go: `gofmt` + `goimports` + `gofumpt` + `golines` (in openstellar/core/tenant)
+- Java: Maven `spotless:apply` (in openstellar/console/backend)
+- Python: `black` + `isort` (in 7 Python projects)
+- TypeScript: `prettier` (globally installed, in openstellar/console/frontend)
 
-**旧方式对比**:
+**Old vs New approach**:
 ```bash
-# 传统方式 (需要记住多个命令)
+# Traditional approach (need to remember multiple commands)
 make fmt-go fmt-java fmt-python fmt-typescript
 
-# 智能方式 (一个命令搞定)  
+# Intelligent approach (one command handles all)
 make format
 ```
 
-#### `make check` - 🔍 智能代码质量检查
+#### `make check` - 🔍 Intelligent code quality checks
 ```bash
 make check
-# 或者使用别名
+# Or use alias
 make lint
 ```
-**功能**: 自动运行所有4种语言的质量检查  
-**智能特性**:
+**Function**: Automatically run quality checks for all 4 languages
+**Intelligent features**:
 - Go: `gocyclo` + `staticcheck` + `golangci-lint` (openstellar/core/tenant)
 - Java: `checkstyle` + `pmd` + `spotbugs` (openstellar/console/backend)
-- Python: `flake8` + `mypy` + `pylint` (7个Python项目)
-- TypeScript: `eslint` + `tsc` (全局工具，openstellar/console/frontend)
+- Python: `flake8` + `mypy` + `pylint` (7 Python projects)
+- TypeScript: `eslint` + `tsc` (global tools, openstellar/console/frontend)
 
-#### `make test` - 🧪 智能测试运行
+#### `make test` - 🧪 Intelligent test execution
 ```bash
 make test
 ```
-**功能**: 自动运行所有项目的测试套件  
-**智能特性**:
+**Function**: Automatically run test suites for all projects
+**Intelligent features**:
 - Go: `go test` with coverage (openstellar/core/tenant)
 - Java: `mvn test` (openstellar/console/backend)
-- Python: `pytest` with coverage (7个Python项目)
-- TypeScript: `npm test` (openstellar/console/frontend，可扩展)
+- Python: `pytest` with coverage (7 Python projects)
+- TypeScript: `npm test` (openstellar/console/frontend, extensible)
 
-#### `make build` - 📦 智能项目构建
+#### `make build` - 📦 Intelligent project building
 ```bash
 make build
 ```
-**功能**: 智能构建所有可构建的项目  
-**智能特性**:
-- Go: 构建二进制文件 (openstellar/core/tenant)
+**Function**: Intelligently build all buildable projects
+**Intelligent features**:
+- Go: Build binary files (openstellar/core/tenant)
 - Java: Maven `package` (openstellar/console/backend)
-- Python: 安装依赖 (7个Python项目的requirements.txt)
+- Python: Install dependencies (requirements.txt for 7 Python projects)
 - TypeScript: Vite `build` (openstellar/console/frontend)
 
-#### 本地运行服务 - 开发模式
+#### Local service execution - Development mode
 ```bash
-# Go服务
-cd openstellar/core/tenant && go run cmd/main.go          # 租户管理服务
+# Go service
+cd openstellar/core/tenant && go run cmd/main.go          # Tenant management service
 
-# Java服务
-cd openstellar/console/backend && mvn spring-boot:run     # 控制台后端
+# Java service
+cd openstellar/console/backend && mvn spring-boot:run     # Console backend
 
-# Python服务 (示例)
-cd openstellar/core/memory/database && python main.py     # 内存数据库服务
-cd openstellar/core/agent && python main.py               # AI Agent服务
+# Python services (examples)
+cd openstellar/core/memory/database && python main.py     # Memory database service
+cd openstellar/core/agent && python main.py               # AI Agent service
 
-# TypeScript前端
-cd openstellar/console/frontend && npm run dev            # 控制台前端 (:5173)
+# TypeScript frontend
+cd openstellar/console/frontend && npm run dev            # Console frontend (:5173)
 ```
 
-#### `make push` - 📤 智能安全推送
+#### `make push` - 📤 Intelligent safe push
 ```bash
 make push
 ```
-**功能**: 预检查 + 分支验证 + 自动推送  
-**智能特性**:
-- 自动运行 `format` 和 `check`
-- 验证分支命名规范
-- 安全推送到远程仓库
+**Function**: Pre-check + branch validation + automatic push
+**Intelligent features**:
+- Automatically run `format` and `check`
+- Validate branch naming conventions
+- Safe push to remote repository
 
-#### `make clean` - 🧹 智能清理构建产物
+#### `make clean` - 🧹 Intelligent build artifact cleanup
 ```bash
 make clean
 ```
-**功能**: 清理所有语言的构建缓存和产物  
-**智能特性**:
-- Go: `go clean` + 清理 `bin/` (openstellar/core/tenant)
+**Function**: Clean build caches and artifacts for all languages
+**Intelligent features**:
+- Go: `go clean` + clean `bin/` (openstellar/core/tenant)
 - Java: `mvn clean` (openstellar/console/backend)
-- Python: 清理 `__pycache__`、`.pytest_cache` (7个Python项目)
-- TypeScript: 清理 `dist/`、`.eslintcache` (openstellar/console/frontend)
+- Python: Clean `__pycache__`, `.pytest_cache` (7 Python projects)
+- TypeScript: Clean `dist/`, `.eslintcache` (openstellar/console/frontend)
 
-### 🔧 第二层：专业命令 (5个)
+### 🔧 Tier 2: Professional Commands (5)
 
-#### `make status` - 📊 显示详细项目状态
+#### `make status` - 📊 Display detailed project status
 ```bash
 make status
 ```
-**输出示例**:
+**Output example**:
 ```
-检测到的活跃项目: python go java typescript
-活跃项目数量: 10
-多项目环境: true
-当前上下文: all
+Detected active projects: python go java typescript
+Active project count: 10
+Multi-project environment: true
+Current context: all
 
-LocalCI配置: .localci.toml
--- 启用的应用 --
-  python: 7个项目 (core-memory, core-rpa, core-link, ...)
-  go: 1个项目 (core-tenant)
-  java: 1个项目 (console-backend)
-  typescript: 1个项目 (console-frontend)
+LocalCI Configuration: .localci.toml
+-- Enabled Applications --
+  python: 7 projects (core-memory, core-rpa, core-link, ...)
+  go: 1 project (core-tenant)
+  java: 1 project (console-backend)
+  typescript: 1 project (console-frontend)
 ```
 
-#### `make info` - ℹ️ 显示工具和依赖信息
+#### `make info` - ℹ️ Display tool and dependency information
 ```bash
 make info
 ```
-**功能**: 显示所有语言的工具安装状态和版本信息
+**Function**: Display installation status and version information for all language tools
 
-#### `make fix` - 🛠️ 自动修复代码问题
+#### `make fix` - 🛠️ Automatically fix code issues
 ```bash
 make fix
 ```
-**功能**: 智能格式化 + 部分lint问题自动修复
+**Function**: Intelligent formatting + automatic lint issue fixes
 
-#### `make ci` - 🤖 完整CI流程
+#### `make ci` - 🤖 Complete CI pipeline
 ```bash
 make ci
 ```
-**功能**: `format` + `check` + `test` + `build` 完整流程
+**Function**: `format` + `check` + `test` + `build` complete pipeline
 
-### ⚙️ 第三层：高级命令 (2个)
+### ⚙️ Tier 3: Advanced Commands (2)
 
-#### `make hooks` - ⚙️ Git钩子管理菜单
+#### `make hooks` - ⚙️ Git hook management menu
 ```bash
 make hooks
 ```
-**功能**: 显示完整的Git钩子管理界面  
-**选项**:
-- `make hooks-install` - 安装完整钩子 (推荐)
-- `make hooks-install-basic` - 安装轻量级钩子
-- `make hooks-uninstall` - 卸载所有钩子
+**Function**: Display complete Git hook management interface
+**Options**:
+- `make hooks-install` - Install complete hooks (recommended)
+- `make hooks-install-basic` - Install lightweight hooks
+- `make hooks-uninstall` - Uninstall all hooks
 
-#### `make enable-legacy` - 🔄 启用专用语言命令
+#### `make enable-legacy` - 🔄 Enable specialized language commands
 ```bash
 make enable-legacy
 ```
-**功能**: 启用完整的专用语言命令集，实现向后兼容
+**Function**: Enable complete specialized language command set for backward compatibility
 
-## 🧠 智能特性深度解析
+## 🧠 Deep Analysis of Intelligent Features
 
-### 自动项目检测机制
-系统通过TOML配置和文件检查来智能识别项目：
+### Automatic Project Detection Mechanism
+System intelligently identifies projects through TOML configuration and file checking:
 
 ```toml
-# .localci.toml - 动态配置驱动
+# .localci.toml - Dynamic configuration driven
 [[go.apps]]
 name = "core-tenant"
 dir = "openstellar/core/tenant"
@@ -245,7 +244,7 @@ enabled = true
 name = "core-memory"
 dir = "openstellar/core/memory/database"
 enabled = true
-# ... 更多Python项目
+# ... more Python projects
 
 [[typescript.apps]]
 name = "console-frontend"
@@ -253,195 +252,195 @@ dir = "openstellar/console/frontend"
 enabled = true
 ```
 
-**检测逻辑**:
-1. 优先读取`.localci.toml`配置
-2. 解析每个项目的目录和状态
-3. 验证目录存在性
-4. 提供fallback到默认demo项目
+**Detection logic**:
+1. Priority: read `.localci.toml` configuration
+2. Parse each project's directory and status
+3. Validate directory existence
+4. Provide fallback to default demo projects
 
-### 上下文感知机制
-根据当前工作目录智能切换行为：
+### Context-Aware Mechanism
+Intelligently switch behavior based on current working directory:
 
 ```bash
 CURRENT_DIR=$(basename "$(PWD)")
-if [ "$$CURRENT_DIR" = "backend-go" ]; then 
+if [ "$$CURRENT_DIR" = "backend-go" ]; then
     echo "go"
-elif [ "$$CURRENT_DIR" = "backend-java" ]; then 
+elif [ "$$CURRENT_DIR" = "backend-java" ]; then
     echo "java"
-# ... 其他语言检测
+# ... other language detection
 ```
 
-### 失败友好机制
-- 单个语言工具缺失不影响其他语言
-- 目录不存在时显示友好提示
-- 命令失败时提供明确的解决方案
+### Failure-Friendly Mechanism
+- Missing tools for one language don't affect others
+- Friendly prompts when directories don't exist
+- Clear solutions provided when commands fail
 
-## 📚 专用语言命令 - 高级用户参考
+## 📚 Specialized Language Commands - Advanced User Reference
 
-启用专用命令后，你可以使用所有原始命令：
+After enabling specialized commands, you can use all original commands:
 
-### Go语言命令 (14个)
+### Go Language Commands (14)
 ```bash
-make install-tools-go      # 安装Go开发工具
-make check-tools-go        # 检查Go工具状态
-make fmt-go               # 格式化Go代码
-make fmt-check-go         # 检查Go代码格式
-make check-go             # Go代码质量检查
-make check-gocyclo        # 检查循环复杂度
-make check-staticcheck    # 运行静态分析
-make check-golangci-lint  # 运行golangci-lint
-make test-go              # 运行Go测试
-make coverage-go          # Go测试覆盖率
-make build-go             # 构建Go项目
-make run-go               # 运行Go服务
-make info-go              # 显示Go项目信息
-make explain-staticcheck  # 解释staticcheck错误
+make install-tools-go      # Install Go development tools
+make check-tools-go        # Check Go tool status
+make fmt-go               # Format Go code
+make fmt-check-go         # Check Go code format
+make check-go             # Go code quality check
+make check-gocyclo        # Check cyclomatic complexity
+make check-staticcheck    # Run static analysis
+make check-golangci-lint  # Run golangci-lint
+make test-go              # Run Go tests
+make coverage-go          # Go test coverage
+make build-go             # Build Go project
+make run-go               # Run Go service
+make info-go              # Display Go project info
+make explain-staticcheck  # Explain staticcheck errors
 ```
 
-### Java语言命令 (23个)
+### Java Language Commands (23)
 ```bash
-make install-tools-java      # 安装Java工具
-make check-tools-java        # 检查Java工具
-make fmt-java               # 格式化Java代码
-make fmt-check-java         # 检查Java格式
-make check-java             # Java质量检查
-make check-checkstyle-java  # Checkstyle检查
-make check-pmd-java         # PMD静态分析
-make check-spotbugs-java    # SpotBugs检查
-make test-java              # 运行Java测试
-make build-java             # 构建Java项目
-make build-fast-java        # 快速构建
-make run-java               # 运行Java应用
-make run-jar-java           # 运行JAR文件
-make clean-java             # 清理Java构建
-make deps-java              # 显示依赖树
-make info-java              # Java项目信息
-make security-java          # 安全漏洞扫描
-make db-info-java           # 数据库状态
-make db-migrate-java        # 执行数据库迁移
-make db-repair-java         # 修复数据库
-make ci-java                # Java CI流程
+make install-tools-java      # Install Java tools
+make check-tools-java        # Check Java tools
+make fmt-java               # Format Java code
+make fmt-check-java         # Check Java format
+make check-java             # Java quality check
+make check-checkstyle-java  # Checkstyle check
+make check-pmd-java         # PMD static analysis
+make check-spotbugs-java    # SpotBugs check
+make test-java              # Run Java tests
+make build-java             # Build Java project
+make build-fast-java        # Fast build
+make run-java               # Run Java application
+make run-jar-java           # Run JAR file
+make clean-java             # Clean Java build
+make deps-java              # Display dependency tree
+make info-java              # Java project info
+make security-java          # Security vulnerability scan
+make db-info-java           # Database status
+make db-migrate-java        # Execute database migration
+make db-repair-java         # Repair database
+make ci-java                # Java CI pipeline
 make pre-commit-java        # Java pre-commit
-make quick-check-java       # 快速检查
+make quick-check-java       # Quick check
 ```
 
-### Python语言命令 (13个)
+### Python Language Commands (13)
 ```bash
-make install-tools-python    # 安装Python工具
-make check-tools-python      # 检查Python工具
-make install-deps-python     # 安装Python依赖
-make fmt-python             # 格式化Python代码  
-make fmt-check-python       # 检查Python格式
-make check-python           # Python质量检查
-make check-mypy-python      # MyPy类型检查
-make check-pylint-python    # Pylint静态分析
-make lint-python            # 综合Python检查
-make test-python            # 运行Python测试
-make coverage-python        # Python测试覆盖率
-make run-python             # 运行Python服务
-make info-python            # Python项目信息
+make install-tools-python    # Install Python tools
+make check-tools-python      # Check Python tools
+make install-deps-python     # Install Python dependencies
+make fmt-python             # Format Python code
+make fmt-check-python       # Check Python format
+make check-python           # Python quality check
+make check-mypy-python      # MyPy type check
+make check-pylint-python    # Pylint static analysis
+make lint-python            # Comprehensive Python check
+make test-python            # Run Python tests
+make coverage-python        # Python test coverage
+make run-python             # Run Python service
+make info-python            # Python project info
 ```
 
-### TypeScript语言命令 (7个)
+### TypeScript Language Commands (7)
 ```bash
-make install-tools-typescript # 🛠️ 全局安装TypeScript工具
-make check-tools-typescript   # ✅ 检查全局TypeScript工具
-make fmt-typescript          # ✨ 格式化TypeScript代码
-make check-typescript        # 🔍 TypeScript质量检查
-make test-typescript         # 🧪  运行TypeScript测试
-make build-typescript        # 📦 构建TypeScript项目
-make clean-typescript        # 🧹 清理TypeScript构建产物
+make install-tools-typescript # 🛠️ Globally install TypeScript tools
+make check-tools-typescript   # ✅ Check global TypeScript tools
+make fmt-typescript          # ✨ Format TypeScript code
+make check-typescript        # 🔍 TypeScript quality check
+make test-typescript         # 🧪  Run TypeScript tests
+make build-typescript        # 📦 Build TypeScript project
+make clean-typescript        # 🧹 Clean TypeScript build artifacts
 ```
 
-**重要更新**: TypeScript工具现在使用**全局安装**方式，避免项目空间污染：
-- 安装: `npm install -g typescript prettier eslint ...`
-- 检测: `command -v tsc prettier eslint`
-- 调用: 直接使用 `prettier`、`tsc`、`eslint` 命令
+**Important update**: TypeScript tools now use **global installation** approach to avoid project space pollution:
+- Installation: `npm install -g typescript prettier eslint ...`
+- Detection: `command -v tsc prettier eslint`
+- Usage: Direct use of `prettier`, `tsc`, `eslint` commands
 
-### Git和分支管理命令 (21个)
+### Git and Branch Management Commands (21)
 ```bash
-# Git钩子管理
-make hooks-install           # 安装所有钩子
-make hooks-install-basic     # 安装基本钩子
-make hooks-uninstall         # 卸载所有钩子
-make hooks-fmt              # 安装格式化钩子
-make hooks-commit-msg       # 安装提交消息钩子
-make hooks-pre-push         # 安装pre-push钩子
-make hooks-uninstall-pre    # 卸载pre-commit钩子
-make hooks-uninstall-msg    # 卸载commit-msg钩子
+# Git hook management
+make hooks-install           # Install all hooks
+make hooks-install-basic     # Install basic hooks
+make hooks-uninstall         # Uninstall all hooks
+make hooks-fmt              # Install formatting hooks
+make hooks-commit-msg       # Install commit message hooks
+make hooks-pre-push         # Install pre-push hooks
+make hooks-uninstall-pre    # Uninstall pre-commit hooks
+make hooks-uninstall-msg    # Uninstall commit-msg hooks
 
-# 分支管理
-make branch-setup           # 设置分支策略
-make branch-help            # 分支管理帮助
-make new-branch             # 创建新分支
-make new-feature            # 创建feature分支
-make new-bugfix             # 创建bugfix分支  
-make new-hotfix             # 创建hotfix分支
-make new-design             # 创建design分支
-make check-branch           # 检查分支命名
-make safe-push              # 安全推送
-make clean-branches         # 清理已合并分支
-make list-remote-branches   # 列出远程分支
+# Branch management
+make branch-setup           # Set branch strategy
+make branch-help            # Branch management help
+make new-branch             # Create new branch
+make new-feature            # Create feature branch
+make new-bugfix             # Create bugfix branch
+make new-hotfix             # Create hotfix branch
+make new-design             # Create design branch
+make check-branch           # Check branch naming
+make safe-push              # Safe push
+make clean-branches         # Clean merged branches
+make list-remote-branches   # List remote branches
 
-# GitHub流程 (可选)
-make github-flow            # GitHub Flow指南
-make switch-to-main         # 切换到主分支
+# GitHub flow (optional)
+make github-flow            # GitHub Flow guide
+make switch-to-main         # Switch to main branch
 ```
 
-### 通用命令 (16个)
+### Generic Commands (16)
 ```bash
-# 环境和工具
-make dev-setup              # 完整开发环境设置
-make install-tools          # 安装所有语言工具
-make check-tools            # 检查所有工具状态
+# Environment and tools
+make dev-setup              # Complete development environment setup
+make install-tools          # Install all language tools
+make check-tools            # Check all tool status
 
-# 格式化
-make fmt-all                # 格式化所有项目
-make fmt-check              # 检查所有项目格式
+# Formatting
+make fmt-all                # Format all projects
+make fmt-check              # Check all project formats
 
-# 质量检查
-make check-all              # 检查所有项目质量
+# Quality checks
+make check-all              # Check all project quality
 
-# 项目状态
-make project-status         # 显示项目状态 (旧版)
-make help                   # 显示帮助信息
+# Project status
+make project-status         # Display project status (legacy)
+make help                   # Display help information
 
-# PR管理 (高级功能)
-make pr-status              # PR状态查询
-make pr-list                # 列出PR
-make pr-merge               # 合并PR
-make push-and-pr            # 推送并创建PR
+# PR management (advanced features)
+make pr-status              # PR status query
+make pr-list                # List PRs
+make pr-merge               # Merge PR
+make push-and-pr            # Push and create PR
 
-# 调试
-make _debug                 # 调试项目检测
+# Debugging
+make _debug                 # Debug project detection
 ```
 
-## 🔧 高级配置
+## 🔧 Advanced Configuration
 
-### Git钩子配置
+### Git Hook Configuration
 ```bash
-# 完整钩子 (推荐)
+# Complete hooks (recommended)
 make hooks-install
-# 包含: pre-commit (format+check) + commit-msg + pre-push
+# Includes: pre-commit (format+check) + commit-msg + pre-push
 
-# 轻量级钩子 (快速开发)  
-make hooks-install-basic  
-# 包含: pre-commit (format only) + commit-msg + pre-push
+# Lightweight hooks (fast development)
+make hooks-install-basic
+# Includes: pre-commit (format only) + commit-msg + pre-push
 ```
 
-### 分支命名规范
+### Branch Naming Conventions
 ```bash
-# 支持的分支模式
-feature/user-authentication    # 功能分支
-bugfix/fix-login-error        # 错误修复
-hotfix/security-patch         # 热修复
-design/mobile-layout          # 设计分支
+# Supported branch patterns
+feature/user-authentication    # Feature branch
+bugfix/fix-login-error        # Bug fix
+hotfix/security-patch         # Hotfix
+design/mobile-layout          # Design branch
 ```
 
-### 提交信息规范 (Conventional Commits)
+### Commit Message Conventions (Conventional Commits)
 ```bash
 feat: add user authentication
-fix: resolve login timeout issue  
+fix: resolve login timeout issue
 docs: update API documentation
 style: format code with prettier
 refactor: optimize database queries
@@ -449,165 +448,165 @@ test: add unit tests for auth module
 chore: update dependencies
 ```
 
-## 📊 性能和质量指标
+## 📊 Performance and Quality Metrics
 
-### 命令执行时间基准
-| 命令 | 单语言 | 10项目 | 优化效果 |
-|------|--------|--------|----------|
-| `format` | ~15s | ~90s | 并行处理10个项目 |
-| `check` | ~30s | ~180s | 智能跳过+并行优化 |
-| `test` | ~10s | ~60s | 选择性测试 |
-| `build` | ~20s | ~80s | 差异化构建策略 |
+### Command Execution Time Benchmarks
+| Command | Single Language | 10 Projects | Optimization Effect |
+|---------|----------------|-------------|---------------------|
+| `format` | ~15s | ~90s | Parallel processing of 10 projects |
+| `check` | ~30s | ~180s | Intelligent skip + parallel optimization |
+| `test` | ~10s | ~60s | Selective testing |
+| `build` | ~20s | ~80s | Differential build strategy |
 
-### 质量保证
-- **零警告**: 所有Makefile执行无警告
-- **零错误**: 命令执行无错误退出
-- **完整兼容**: 所有专用语言命令可用
-- **完整测试**: 所有测试用例100%通过
+### Quality Assurance
+- **Zero warnings**: All Makefile executions without warnings
+- **Zero errors**: Command executions without error exits
+- **Complete compatibility**: All specialized language commands available
+- **Complete testing**: All test cases 100% pass
 
-### 开发效率优势
-- **学习成本**: 极低学习曲线，5分钟上手
-- **命令简洁**: 15个核心命令覆盖所有场景
-- **项目管理**: 统一管理10个项目，无需切换上下文
-- **认知负担**: 最小化记忆成本
-- **上手速度**: 即时可用的开发体验
-- **多项目协调**: 统一工作流管理多个项目
+### Development Efficiency Advantages
+- **Learning cost**: Extremely low learning curve, 5-minute onboarding
+- **Command simplicity**: 15 core commands cover all scenarios
+- **Project management**: Unified management of 10 projects without context switching
+- **Cognitive load**: Minimized memory cost
+- **Onboarding speed**: Instantly usable development experience
+- **Multi-project coordination**: Unified workflow for multiple projects
 
-## 🤝 扩展和定制
+## 🤝 Extension and Customization
 
-### 添加新语言支持
-1. 创建 `makefiles/newlang.mk`
-2. 实现标准接口:
+### Adding New Language Support
+1. Create `makefiles/newlang.mk`
+2. Implement standard interface:
    ```makefile
-   install-tools-newlang:    # 工具安装
-   fmt-newlang:             # 代码格式化
-   check-newlang:           # 质量检查
-   test-newlang:            # 测试运行  
+   install-tools-newlang:    # Tool installation
+   fmt-newlang:             # Code formatting
+   check-newlang:           # Quality check
+   test-newlang:            # Test execution
    ```
-3. 更新 `detection.mk` 检测逻辑
-4. 在 `workflows.mk` 中添加智能支持
+3. Update `detection.mk` detection logic
+4. Add intelligent support in `workflows.mk`
 
-### 自定义工作流
+### Custom Workflows
 ```makefile
-# 自定义CI流程
+# Custom CI pipeline
 my-ci: format check test build custom-deploy
 
-# 自定义检查流程  
+# Custom check pipeline
 my-check: security-scan performance-test custom-rules
 ```
 
-## 🎯 最佳实践
+## 🎯 Best Practices
 
-### 日常开发流程
+### Daily Development Workflow
 ```bash
-# 1. 环境搭建 (仅需一次)
+# 1. Environment setup (one-time only)
 make setup
 
-# 2. 开发循环
-make format     # 格式化
-make check      # 检查
-make test       # 测试
-# 按需在对应目录启动服务 (见上节)
+# 2. Development loop
+make format     # Format
+make check      # Check
+make test       # Test
+# Start services in appropriate directories as needed (see above)
 
-# 3. 提交代码
-make push       # 安全推送 (自动预检查)
+# 3. Commit code
+make push       # Safe push (automatic pre-check)
 ```
 
-### 团队协作流程
+### Team Collaboration Workflow
 ```bash
-# 团队负责人
-make setup                  # 搭建标准环境
-make hooks-install         # 启用代码质量钩子
-make enable-legacy         # 兼容旧工作流
+# Team lead
+make setup                  # Set up standard environment
+make hooks-install         # Enable code quality hooks
+make enable-legacy         # Compatible with old workflows
 
-# 团队成员  
+# Team members
 git clone <repo>
-make setup                 # 一键环境搭建
-make status               # 验证环境
+make setup                 # One-click environment setup
+make status               # Verify environment
 ```
 
-### CI/CD集成
+### CI/CD Integration
 ```bash
-# 本地CI
+# Local CI
 make ci                   # format + check + test + build
 
-# 发布前验证
-./makefile-tests/test_makefile.sh  # 完整测试
-make clean && make build  # 清洁构建
+# Pre-release verification
+./makefile-tests/test_makefile.sh  # Complete testing
+make clean && make build  # Clean build
 ```
 
-## 🐛 故障排除
+## 🐛 Troubleshooting
 
-### 常见问题和解决方案
+### Common Issues and Solutions
 
-#### 1. 工具安装失败
+#### 1. Tool Installation Failure
 ```bash
-# 诊断
+# Diagnose
 make info
-make check-tools-go  # 检查特定语言
+make check-tools-go  # Check specific language
 
-# 解决  
-make install-tools   # 重新安装
+# Resolve
+make install-tools   # Reinstall
 ```
 
-#### 2. 项目检测错误
-```bash  
-# 诊断
-make _debug          # 查看检测详情
-make status         # 项目状态
-
-# 解决
-# 确保项目文件存在 (go.mod, pom.xml, package.json等)
-```
-
-#### 3. 钩子问题
+#### 2. Project Detection Error
 ```bash
-# 诊断
-ls -la .git/hooks/
-make hooks          # 查看钩子状态
+# Diagnose
+make _debug          # View detection details
+make status         # Project status
 
-# 解决
+# Resolve
+# Ensure project files exist (go.mod, pom.xml, package.json, etc.)
+```
+
+#### 3. Hook Issues
+```bash
+# Diagnose
+ls -la .git/hooks/
+make hooks          # View hook status
+
+# Resolve
 make hooks-uninstall && make hooks-install
 ```
 
-#### 4. 性能问题
+#### 4. Performance Issues
 ```bash
-# 轻量级钩子 (更快)
+# Lightweight hooks (faster)
 make hooks-install-basic
 
-# 分别处理项目
-cd backend-go && make format
-cd backend-java && make check
+# Process projects separately
+cd openstellar/core/tenant && make format
+cd openstellar/console/backend && make check
 ```
 
-## 📈 升级和维护
+## 📈 Upgrade and Maintenance
 
-### 版本升级
+### Version Upgrade
 ```bash
-# 备份当前配置
+# Backup current configuration
 cp Makefile Makefile.backup
 cp -r makefiles makefiles.backup
 
-# 升级后验证
+# Verify after upgrade
 make status
 ./makefile-tests/quick_test.sh
 ```
 
-### 定期维护
+### Regular Maintenance
 ```bash
-# 清理构建缓存
+# Clean build caches
 make clean
 
-# 更新工具版本
+# Update tool versions
 make install-tools
 
-# 验证工具状态  
+# Verify tool status
 make info
 ```
 
 ---
 
-**🎉 享受统一的多语言开发体验！**
+**🎉 Enjoy the unified multi-language development experience!**
 
-**快速上手指南**: [README.md](./README.md)  
-**Claude开发指南**: [CLAUDE.md](./CLAUDE.md)
+**Quick Start Guide**: [README.md](./README.md)
+**Claude Development Guide**: [CLAUDE.md](./CLAUDE.md)
