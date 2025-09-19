@@ -1,10 +1,10 @@
 # 🚀 Intelligent Multi-Language CI/CD Toolchain - Complete Documentation
 
-> **Revolutionary optimization from 95 complex commands to 15 intelligent commands**
+> **Unified development workflow supporting Go, Java, Python, TypeScript**
 
 ## 🌟 Project Overview
 
-This is an **intelligent multi-language CI/CD development toolchain** that, after deep optimization, supports unified development workflows for **Go, Java, Python, TypeScript** - four mainstream languages.
+This is an **intelligent multi-language CI/CD development toolchain** that supports unified development workflows for **Go, Java, Python, TypeScript** - four mainstream languages.
 
 ### 🏢 Based on openstellar Multi-Project Architecture
 Currently configured to support **10 actual projects**:
@@ -13,20 +13,15 @@ Currently configured to support **10 actual projects**:
 - **7 Python projects**: core services and plugin system
 - **1 TypeScript project**: console-frontend (console frontend)
 
-### 🎯 Revolutionary Optimization Results
+### 🎯 Core Features
 
-Before project optimization, developers faced these pain points:
-- **Command explosion**: 95 Makefile commands, difficult to memorize
-- **Heavy cognitive load**: Each language requires remembering different commands
-- **High complexity**: `make fmt-go fmt-java fmt-python fmt-typescript`
-- **Steep learning curve**: New developers need 1-2 hours of learning cost
-- **Multi-project management**: 10 projects need separate management
+The current system provides comprehensive multi-language development experience:
 
-**Post-optimization solution**:
-- ✅ **84% command reduction**: From 95 commands down to 15 core commands
+**Unified workflow solution**:
+- ✅ **Concise command system**: 15 core commands covering all development scenarios
 - ✅ **Zero learning cost**: Only need to remember 7 daily commands
 - ✅ **Intelligent operations**: `make format` automatically handles all languages and projects
-- ✅ **Perfect compatibility**: All 95 old commands still available
+- ✅ **Perfect compatibility**: Preserve all specialized language commands
 - ✅ **Unified workflow**: One set of commands manages 10 projects
 - ✅ **TOML-driven configuration**: Dynamic multi-project support
 
@@ -92,10 +87,10 @@ make format
 
 **Old vs New approach**:
 ```bash
-# Before optimization (need to remember 4 commands)
+# Traditional approach (need to remember multiple commands)
 make fmt-go fmt-java fmt-python fmt-typescript
 
-# After optimization (one command handles all)
+# Intelligent approach (one command handles all)
 make format
 ```
 
@@ -222,11 +217,11 @@ make hooks
 - `make hooks-install-basic` - Install lightweight hooks
 - `make hooks-uninstall` - Uninstall all hooks
 
-#### `make enable-legacy` - 🔄 Enable complete legacy command set
+#### `make enable-legacy` - 🔄 Enable specialized language commands
 ```bash
 make enable-legacy
 ```
-**Function**: Enable complete 95 original commands for backward compatibility
+**Function**: Enable complete specialized language command set for backward compatibility
 
 ## 🧠 Deep Analysis of Intelligent Features
 
@@ -280,9 +275,9 @@ elif [ "$$CURRENT_DIR" = "backend-java" ]; then
 - Friendly prompts when directories don't exist
 - Clear solutions provided when commands fail
 
-## 📚 Backward Compatibility - Complete 95 Original Commands
+## 📚 Specialized Language Commands - Advanced User Reference
 
-After enabling legacy commands, you can use all original commands:
+After enabling specialized commands, you can use all original commands:
 
 ### Go Language Commands (14)
 ```bash
@@ -466,16 +461,16 @@ chore: update dependencies
 ### Quality Assurance
 - **Zero warnings**: All Makefile executions without warnings
 - **Zero errors**: Command executions without error exits
-- **100% compatibility**: All 95 old commands available
-- **Complete testing**: 95 test cases 100% pass
+- **Complete compatibility**: All specialized language commands available
+- **Complete testing**: All test cases 100% pass
 
-### Development Efficiency Improvement
-- **Learning cost**: From 2 hours down to 5 minutes (95% improvement)
-- **Command complexity**: From 95 down to 15 (84% simplification)
-- **Project management**: From manual management of 10 projects to unified commands
-- **Cognitive load**: From heavy to zero (qualitative leap)
-- **Onboarding speed**: From difficult to instantly usable
-- **Multi-project coordination**: From scattered operations to unified workflow
+### Development Efficiency Advantages
+- **Learning cost**: Extremely low learning curve, 5-minute onboarding
+- **Command simplicity**: 15 core commands cover all scenarios
+- **Project management**: Unified management of 10 projects without context switching
+- **Cognitive load**: Minimized memory cost
+- **Onboarding speed**: Instantly usable development experience
+- **Multi-project coordination**: Unified workflow for multiple projects
 
 ## 🤝 Extension and Customization
 
@@ -611,7 +606,7 @@ make info
 
 ---
 
-**🎉 Enjoy the revolutionary development experience from 95 commands to 15 commands!**
+**🎉 Enjoy the unified multi-language development experience!**
 
 **Quick Start Guide**: [README.md](./README.md)
 **Claude Development Guide**: [CLAUDE.md](./CLAUDE.md)
