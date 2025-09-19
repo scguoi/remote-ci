@@ -2,20 +2,39 @@
 # Intelligent Project Detection Mechanism - Core Detection Module
 # =============================================================================
 
-# Color definitions - simple and reliable approach
-# Disable colors completely for better Linux compatibility
-RED :=
-GREEN :=
-YELLOW :=
-BLUE :=
-RESET :=
+# Smart color detection - enable colors when supported, disable when not
+# Test multiple conditions to ensure reliable detection
+SUPPORTS_COLOR := $(shell \
+	if [ -n "$$NO_COLOR" ] || [ "$$TERM" = "dumb" ] || [ ! -t 1 ]; then \
+		echo "false"; \
+	elif command -v tput >/dev/null 2>&1; then \
+		colors=$$(tput colors 2>/dev/null || echo 0); \
+		if [ "$$colors" -ge 8 ]; then \
+			echo "true"; \
+		else \
+			echo "false"; \
+		fi; \
+	else \
+		echo "false"; \
+	fi)
 
-# Alternative: uncomment these lines if your terminal definitely supports colors
-# RED := \033[31m
-# GREEN := \033[32m
-# YELLOW := \033[33m
-# BLUE := \033[34m
-# RESET := \033[0m
+# Debug info (remove after testing)
+$(info [DEBUG] Color detection: SUPPORTS_COLOR=$(SUPPORTS_COLOR), TERM=$(TERM), NO_COLOR=$(NO_COLOR), tput_colors=$(shell tput colors 2>/dev/null || echo "failed"))
+
+# Define colors based on detection result
+ifeq ($(SUPPORTS_COLOR),true)
+	RED := \033[31m
+	GREEN := \033[32m
+	YELLOW := \033[33m
+	BLUE := \033[34m
+	RESET := \033[0m
+else
+	RED :=
+	GREEN :=
+	YELLOW :=
+	BLUE :=
+	RESET :=
+endif
 
 # LocalCI config path (local override, then default template)
 LOCALCI_CONFIG := $(shell if [ -f .localci.toml ]; then echo .localci.toml; elif [ -f makefiles/localci.toml ]; then echo makefiles/localci.toml; fi)
