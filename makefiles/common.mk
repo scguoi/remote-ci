@@ -2,12 +2,20 @@
 # Common Variables and Functions - Makefile Module
 # =============================================================================
 
-# Color output definitions
-RED := \033[31m
-GREEN := \033[32m
-YELLOW := \033[33m
-BLUE := \033[34m
-RESET := \033[0m
+# Color output definitions - disabled for Linux compatibility
+# Note: These may be overridden by detection.mk for intelligent color handling
+RED :=
+GREEN :=
+YELLOW :=
+BLUE :=
+RESET :=
+
+# Uncomment below if you want to force enable colors
+# RED := \033[31m
+# GREEN := \033[32m
+# YELLOW := \033[33m
+# BLUE := \033[34m
+# RESET := \033[0m
 
 # Project status check
 project-status: ## Show detected project status
