@@ -2,24 +2,10 @@
 # Intelligent Project Detection Mechanism - Core Detection Module
 # =============================================================================
 
-# Smart color detection - enable colors when supported, disable when not
-# Test multiple conditions to ensure reliable detection
-SUPPORTS_COLOR := $(shell \
-	if [ -n "$$NO_COLOR" ] || [ "$$TERM" = "dumb" ] || [ ! -t 1 ]; then \
-		echo "false"; \
-	elif command -v tput >/dev/null 2>&1; then \
-		colors=$$(tput colors 2>/dev/null || echo 0); \
-		if [ "$$colors" -ge 8 ]; then \
-			echo "true"; \
-		else \
-			echo "false"; \
-		fi; \
-	else \
-		echo "false"; \
-	fi)
-
-# Debug info (remove after testing)
-$(info [DEBUG] Color detection: SUPPORTS_COLOR=$(SUPPORTS_COLOR), TERM=$(TERM), NO_COLOR=$(NO_COLOR), tput_colors=$(shell tput colors 2>/dev/null || echo "failed"))
+# Smart color detection - macOS/Linux compatible
+# Check tput colors first, fallback to TERM analysis
+TPUT_COLORS := $(shell tput colors 2>/dev/null || echo 0)
+SUPPORTS_COLOR := $(shell if [ -n "$$NO_COLOR" ] || [ "$$TERM" = "dumb" ]; then echo "false"; elif [ "$(TPUT_COLORS)" -ge 8 ]; then echo "true"; elif echo "$$TERM" | grep -E "(color|xterm|screen|tmux)" >/dev/null; then echo "true"; else echo "false"; fi)
 
 # Define colors based on detection result
 ifeq ($(SUPPORTS_COLOR),true)
