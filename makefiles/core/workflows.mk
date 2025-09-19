@@ -48,7 +48,7 @@ smart_format: ## ✨ Intelligent code formatting (detects active projects)
 	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
 		echo "$(YELLOW)Using configuration: $(LOCALCI_CONFIG)$(RESET)"; \
 		for lang in $(ACTIVE_PROJECTS); do \
-			apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
+			apps="$$(makefiles/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
 			if [ -n "$$apps" ]; then \
 				for dir in $$apps; do \
 					echo "  - Formatting($$lang): $$dir"; \
@@ -85,7 +85,7 @@ smart_check: ## 🔍 Intelligent code quality check (detect active projects)
 	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
 		echo "$(YELLOW)Using configuration: $(LOCALCI_CONFIG)$(RESET)"; \
 		for lang in $(ACTIVE_PROJECTS); do \
-			apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
+			apps="$$(makefiles/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
 			if [ -n "$$apps" ]; then \
 				for dir in $$apps; do \
 					echo "  - Checking($$lang): $$dir"; \
@@ -134,7 +134,7 @@ smart_test: ## 🧪 Intelligent test execution (detect active projects)
 	@echo "$(BLUE)🧪 Intelligent testing: $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
 	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
 		for lang in $(ACTIVE_PROJECTS); do \
-			apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
+			apps="$$(makefiles/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
 			if [ -n "$$apps" ]; then \
 				for dir in $$apps; do \
 					echo "  - Testing($$lang): $$dir"; \
@@ -170,7 +170,7 @@ smart_build: ## 📦 Intelligent project build (detect active projects)
 	@echo "$(BLUE)📦 Intelligent build: $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
 	@if [ -n "$(LOCALCI_CONFIG)" ]; then \
 		for lang in $(ACTIVE_PROJECTS); do \
-			apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
+			apps="$$(makefiles/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
 			if [ -n "$$apps" ]; then \
 				for dir in $$apps; do \
 					echo "  - Building($$lang): $$dir"; \
@@ -218,7 +218,7 @@ smart_clean: ## 🧹 Intelligent cleanup of build artifacts
 	@echo "$(BLUE)🧹 Intelligent cleanup: $(GREEN)$(ACTIVE_PROJECTS)$(RESET)"
 		@if [ -n "$(LOCALCI_CONFIG)" ]; then \
 			for lang in $(ACTIVE_PROJECTS); do \
-			apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
+			apps="$$(makefiles/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG) | cut -d'|' -f2)"; \
 			if [ -n "$$apps" ]; then \
 				for dir in $$apps; do \
 					echo "  - Cleaning($$lang): $$dir"; \
@@ -278,14 +278,14 @@ smart_status: ## 📊 Show detailed project status
 		if [ -f "$(LOCALCI_CONFIG)" ]; then \
 			echo "-- Enabled Applications --"; \
 				for lang in $(ACTIVE_PROJECTS); do \
-				apps="$$(scripts/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG))"; \
+				apps="$$(makefiles/parse_localci.sh enabled $$lang $(LOCALCI_CONFIG))"; \
 				if [ -n "$$apps" ]; then \
 					echo "  $$lang:"; \
 					echo "$$apps" | while IFS='|' read -r name dir; do echo "    - $$name -> $$dir"; done; \
 				fi; \
 			done; \
 			echo "-- All Applications (including disabled) --"; \
-			scripts/parse_localci.sh all $(LOCALCI_CONFIG) | awk -F'|' '{ printf "  %s: %s [%s] -> %s\n", $$1, $$2, $$4, $$3 }'; \
+			makefiles/parse_localci.sh all $(LOCALCI_CONFIG) | awk -F'|' '{ printf "  %s: %s [%s] -> %s\n", $$1, $$2, $$4, $$3 }'; \
 		fi; \
 	fi
 	@echo ""

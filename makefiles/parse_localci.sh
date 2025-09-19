@@ -9,11 +9,11 @@ set -euo pipefail
 # enabled = true
 #
 # Usage:
-#   scripts/parse_localci.sh enabled <lang> <config_path>
+#   makefiles/parse_localci.sh enabled <lang> <config_path>
 #     -> prints: name|dir (only enabled apps; enabled defaults to true)
-#   scripts/parse_localci.sh langs <config_path>
+#   makefiles/parse_localci.sh langs <config_path>
 #     -> prints: space-separated langs that have at least one enabled app
-#   scripts/parse_localci.sh all <config_path>
+#   makefiles/parse_localci.sh all <config_path>
 #     -> prints: lang|name|dir|enabled
 
 cmd="${1:-}"

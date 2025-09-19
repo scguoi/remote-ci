@@ -11,7 +11,7 @@ TSC := typescript
 # Get all TypeScript directories from config
 TS_DIRS := $(shell \
 	if [ -n "$(LOCALCI_CONFIG)" ] && [ -f "$(LOCALCI_CONFIG)" ]; then \
-		scripts/parse_localci.sh enabled typescript $(LOCALCI_CONFIG) | cut -d'|' -f2 | tr '\n' ' '; \
+		makefiles/parse_localci.sh enabled typescript $(LOCALCI_CONFIG) | cut -d'|' -f2 | tr '\n' ' '; \
 	else \
 		echo "demo-apps/frontends/typescript"; \
 	fi)

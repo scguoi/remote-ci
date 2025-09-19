@@ -16,7 +16,7 @@ LOCALCI_CONFIG := $(shell if [ -f .localci.toml ]; then echo .localci.toml; elif
 define detect_active_projects
 	$(shell \
 		if [ -n "$(LOCALCI_CONFIG)" ] && [ -f "$(LOCALCI_CONFIG)" ]; then \
-			scripts/parse_localci.sh langs $(LOCALCI_CONFIG); \
+			makefiles/parse_localci.sh langs $(LOCALCI_CONFIG); \
 		else \
 			PROJECTS=""; \
 			[ -f "demo-apps/backends/go/go.mod" ] && [ -d "demo-apps/backends/go/cmd" ] && PROJECTS="$$PROJECTS go"; \
@@ -45,8 +45,8 @@ ifeq ($(strip $(LOCALCI_CONFIG)),)
   ACTIVE_PROJECTS := $(detect_active_projects)
   PROJECT_COUNT := $(shell echo $(ACTIVE_PROJECTS) | wc -w | tr -d ' ')
 else
-  ACTIVE_PROJECTS := $(shell scripts/parse_localci.sh langs $(LOCALCI_CONFIG))
-  PROJECT_COUNT := $(shell scripts/parse_localci.sh all $(LOCALCI_CONFIG) | grep -c "true" | tr -d ' ')
+  ACTIVE_PROJECTS := $(shell makefiles/parse_localci.sh langs $(LOCALCI_CONFIG))
+  PROJECT_COUNT := $(shell makefiles/parse_localci.sh all $(LOCALCI_CONFIG) | grep -c "true" | tr -d ' ')
 endif
 
 # Check if this is a multi-project environment

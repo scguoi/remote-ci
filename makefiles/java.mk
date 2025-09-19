@@ -6,7 +6,7 @@
 MVN := mvn
 JAVA_DIRS := $(shell \
 	if [ -n "$(LOCALCI_CONFIG)" ] && [ -f "$(LOCALCI_CONFIG)" ]; then \
-		scripts/parse_localci.sh enabled java $(LOCALCI_CONFIG) | cut -d'|' -f2 | tr '\n' ' '; \
+		makefiles/parse_localci.sh enabled java $(LOCALCI_CONFIG) | cut -d'|' -f2 | tr '\n' ' '; \
 	else \
 		echo "demo-apps/backends/java"; \
 	fi)
