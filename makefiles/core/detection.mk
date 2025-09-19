@@ -2,10 +2,21 @@
 # Intelligent Project Detection Mechanism - Core Detection Module
 # =============================================================================
 
-# Smart color detection - macOS/Linux compatible
-# Check tput colors first, fallback to TERM analysis
+# Smart color detection - strict Linux compatibility
+# Force disable colors on Linux servers, enable on interactive terminals
 TPUT_COLORS := $(shell tput colors 2>/dev/null || echo 0)
-SUPPORTS_COLOR := $(shell if [ -n "$$NO_COLOR" ] || [ "$$TERM" = "dumb" ]; then echo "false"; elif [ "$(TPUT_COLORS)" -ge 8 ]; then echo "true"; elif echo "$$TERM" | grep -E "(color|xterm|screen|tmux)" >/dev/null; then echo "true"; else echo "false"; fi)
+IS_SSH := $(shell if [ -n "$$SSH_CONNECTION" ] || [ -n "$$SSH_CLIENT" ] || [ -n "$$SSH_TTY" ]; then echo "true"; else echo "false"; fi)
+SUPPORTS_COLOR := $(shell \
+	if [ -n "$$NO_COLOR" ] || [ "$$TERM" = "dumb" ] || [ "$(IS_SSH)" = "true" ]; then \
+		echo "false"; \
+	elif [ "$(TPUT_COLORS)" -ge 8 ] && [ "$$TERM" != "linux" ]; then \
+		echo "true"; \
+	else \
+		echo "false"; \
+	fi)
+
+# Debug info to understand what's happening on your server
+$(info [DEBUG] SSH=$(IS_SSH), TPUT_COLORS=$(TPUT_COLORS), TERM=$(TERM), SUPPORTS_COLOR=$(SUPPORTS_COLOR))
 
 # Define colors based on detection result
 ifeq ($(SUPPORTS_COLOR),true)
