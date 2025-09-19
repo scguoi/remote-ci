@@ -176,4 +176,29 @@ make status         # 显示项目状态详情
 - **智能化操作**: 一个命令处理多种语言
 - **完美兼容**: 所有旧命令仍可使用
 
+### 颜色输出控制
+工具链支持智能颜色检测，你可以通过环境变量控制：
+
+```bash
+# 强制启用颜色 (适用于WSL、SSH等环境)
+FORCE_COLOR=1 make status
+
+# 强制禁用颜色 (适用于脚本、CI等环境)
+NO_COLOR=1 make status
+
+# 启用调试信息查看检测过程
+DEBUG_COLOR=1 make status
+
+# 正常使用 (自动检测终端能力)
+make status
+```
+
+**支持的环境：**
+- ✅ macOS Terminal, iTerm2
+- ✅ WSL (使用 `FORCE_COLOR=1`)
+- ✅ Linux桌面终端
+- ✅ SSH连接 (使用 `FORCE_COLOR=1`)
+- ✅ CI/CD环境 (自动禁用或使用 `NO_COLOR=1`)
+- ✅ tmux, screen (自动检测)
+
 详细文档请参考：`Makefile-readme.md`
