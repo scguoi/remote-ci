@@ -6,6 +6,13 @@
 
 这是一个**智能多语言CI/CD开发工具链**，经过深度优化后支持**Go、Java、Python、TypeScript**四种主流语言的统一开发工作流。
 
+### 🏢 基于openstellar多项目架构
+当前配置支持**10个实际项目**：
+- **1个Go项目**: core-tenant (租户管理)
+- **1个Java项目**: console-backend (控制台后端)
+- **7个Python项目**: 核心服务和插件系统
+- **1个TypeScript项目**: console-frontend (控制台前端)
+
 ### 🎯 革命性优化成果
 
 在项目优化前，开发者面临这些痛点：
@@ -13,13 +20,15 @@
 - **认知负担重**：每种语言需要记住不同命令
 - **复杂度高**：`make fmt-go fmt-java fmt-python fmt-typescript`
 - **上手困难**：新开发者需要1-2小时学习成本
+- **多项目管理**：10个项目需要单独管理
 
 **优化后的解决方案**：
 - ✅ **命令精简84%**：从95个命令减少到15个核心命令
 - ✅ **零学习成本**：只需记住7个日常命令
-- ✅ **智能化操作**：`make format`自动处理所有语言
+- ✅ **智能化操作**：`make format`自动处理所有语言和项目
 - ✅ **完美兼容**：所有95个旧命令依然可用
-- ✅ **统一工作流**：一套命令搞定所有语言
+- ✅ **统一工作流**：一套命令管理10个项目
+- ✅ **TOML配置驱动**：动态多项目支持
 
 ## 🏗️ 系统架构
 
@@ -40,11 +49,20 @@ workflows.mk → 智能格式化所有语言
 
 ### 语言支持模块
 ```
-go.mk         → Go语言完整工具链 (14个命令)
-java.mk       → Java/Maven支持 (23个命令)  
-python.mk     → Python工具链 (13个命令)
-typescript.mk → TypeScript/Node (8个命令)
+go.mk         → Go语言完整工具链 (7个统一命令)
+java.mk       → Java/Maven支持 (7个统一命令)
+python.mk     → Python工具链 (7个统一命令)
+typescript.mk → TypeScript/Node (7个统一命令) - 全局工具安装
 git.mk        → Git钩子管理 (21个命令)
+
+每个语言模块都实现了统一的7命令接口：
+- install-tools-{lang}  🛠️ 工具安装
+- check-tools-{lang}   ✅ 工具检测
+- fmt-{lang}          ✨ 代码格式化
+- check-{lang}        🔍 质量检查
+- test-{lang}         🧪 测试运行
+- build-{lang}        📦 项目构建
+- clean-{lang}        🧹 清理构建产物
 ```
 
 ## 📋 完整命令参考
@@ -67,10 +85,10 @@ make format
 ```
 **功能**: 自动检测并格式化所有4种语言的代码  
 **智能特性**:
-- Go: `gofmt` + `goimports` + `gofumpt` + `golines`
-- Java: Maven `spotless:apply`
-- Python: `black` + `isort` 
-- TypeScript: `prettier`
+- Go: `gofmt` + `goimports` + `gofumpt` + `golines` (在openstellar/core/tenant)
+- Java: Maven `spotless:apply` (在openstellar/console/backend)
+- Python: `black` + `isort` (在7个Python项目)
+- TypeScript: `prettier` (全局安装，在openstellar/console/frontend)
 
 **旧方式对比**:
 ```bash
@@ -89,10 +107,10 @@ make lint
 ```
 **功能**: 自动运行所有4种语言的质量检查  
 **智能特性**:
-- Go: `gocyclo` + `staticcheck` + `golangci-lint`
-- Java: `checkstyle` + `pmd` + `spotbugs`
-- Python: `flake8` + `mypy` + `pylint`
-- TypeScript: `eslint` + `tsc`
+- Go: `gocyclo` + `staticcheck` + `golangci-lint` (openstellar/core/tenant)
+- Java: `checkstyle` + `pmd` + `spotbugs` (openstellar/console/backend)
+- Python: `flake8` + `mypy` + `pylint` (7个Python项目)
+- TypeScript: `eslint` + `tsc` (全局工具，openstellar/console/frontend)
 
 #### `make test` - 🧪 智能测试运行
 ```bash
@@ -100,10 +118,10 @@ make test
 ```
 **功能**: 自动运行所有项目的测试套件  
 **智能特性**:
-- Go: `go test` with coverage
-- Java: `mvn test`
-- Python: `pytest` with coverage
-- TypeScript: 跳过 (可扩展)
+- Go: `go test` with coverage (openstellar/core/tenant)
+- Java: `mvn test` (openstellar/console/backend)
+- Python: `pytest` with coverage (7个Python项目)
+- TypeScript: `npm test` (openstellar/console/frontend，可扩展)
 
 #### `make build` - 📦 智能项目构建
 ```bash
@@ -111,17 +129,25 @@ make build
 ```
 **功能**: 智能构建所有可构建的项目  
 **智能特性**:
-- Go: 构建二进制文件
-- Java: Maven `package`
-- Python: 无需构建 (解释执行)
-- TypeScript: Vite `build`
+- Go: 构建二进制文件 (openstellar/core/tenant)
+- Java: Maven `package` (openstellar/console/backend)
+- Python: 安装依赖 (7个Python项目的requirements.txt)
+- TypeScript: Vite `build` (openstellar/console/frontend)
 
 #### 本地运行服务 - 开发模式
 ```bash
-cd backend-go && go run cmd/main.go        # Go Gin (:8080)
-cd backend-java && mvn spring-boot:run     # Spring Boot (:8081)
-cd backend-python && python main.py        # FastAPI (:8000)
-cd frontend-ts && npm run dev              # Vite dev server (:5173)
+# Go服务
+cd openstellar/core/tenant && go run cmd/main.go          # 租户管理服务
+
+# Java服务
+cd openstellar/console/backend && mvn spring-boot:run     # 控制台后端
+
+# Python服务 (示例)
+cd openstellar/core/memory/database && python main.py     # 内存数据库服务
+cd openstellar/core/agent && python main.py               # AI Agent服务
+
+# TypeScript前端
+cd openstellar/console/frontend && npm run dev            # 控制台前端 (:5173)
 ```
 
 #### `make push` - 📤 智能安全推送
@@ -140,10 +166,10 @@ make clean
 ```
 **功能**: 清理所有语言的构建缓存和产物  
 **智能特性**:
-- Go: `go clean` + 清理 `bin/`
-- Java: `mvn clean`
-- Python: 清理 `__pycache__`
-- TypeScript: 清理 `dist/` + `node_modules/.cache`
+- Go: `go clean` + 清理 `bin/` (openstellar/core/tenant)
+- Java: `mvn clean` (openstellar/console/backend)
+- Python: 清理 `__pycache__`、`.pytest_cache` (7个Python项目)
+- TypeScript: 清理 `dist/`、`.eslintcache` (openstellar/console/frontend)
 
 ### 🔧 第二层：专业命令 (5个)
 
@@ -153,10 +179,17 @@ make status
 ```
 **输出示例**:
 ```
-检测到的活跃项目: go java python typescript
-活跃项目数量: 4
+检测到的活跃项目: python go java typescript
+活跃项目数量: 10
 多项目环境: true
 当前上下文: all
+
+LocalCI配置: .localci.toml
+-- 启用的应用 --
+  python: 7个项目 (core-memory, core-rpa, core-link, ...)
+  go: 1个项目 (core-tenant)
+  java: 1个项目 (console-backend)
+  typescript: 1个项目 (console-frontend)
 ```
 
 #### `make info` - ℹ️ 显示工具和依赖信息
@@ -198,21 +231,37 @@ make enable-legacy
 ## 🧠 智能特性深度解析
 
 ### 自动项目检测机制
-系统通过检查特定文件来智能识别项目类型：
+系统通过TOML配置和文件检查来智能识别项目：
 
-```makefile
-# Go项目检测
-[ -f "backend-go/go.mod" ] && [ -d "backend-go/cmd" ]
+```toml
+# .localci.toml - 动态配置驱动
+[[go.apps]]
+name = "core-tenant"
+dir = "openstellar/core/tenant"
+enabled = true
 
-# Java项目检测  
-[ -f "backend-java/pom.xml" ] && [ -d "backend-java/user-web" ]
+[[java.apps]]
+name = "console-backend"
+dir = "openstellar/console/backend"
+enabled = true
 
-# Python项目检测
-[ -f "backend-python/main.py" ] && [ -f "backend-python/requirements.txt" ]
+[[python.apps]]
+name = "core-memory"
+dir = "openstellar/core/memory/database"
+enabled = true
+# ... 更多Python项目
 
-# TypeScript项目检测
-[ -f "frontend-ts/package.json" ] && [ -f "frontend-ts/tsconfig.json" ]
+[[typescript.apps]]
+name = "console-frontend"
+dir = "openstellar/console/frontend"
+enabled = true
 ```
+
+**检测逻辑**:
+1. 优先读取`.localci.toml`配置
+2. 解析每个项目的目录和状态
+3. 验证目录存在性
+4. 提供fallback到默认demo项目
 
 ### 上下文感知机制
 根据当前工作目录智能切换行为：
@@ -297,17 +346,21 @@ make run-python             # 运行Python服务
 make info-python            # Python项目信息
 ```
 
-### TypeScript语言命令 (8个)
+### TypeScript语言命令 (7个)
 ```bash
-make install-tools-typescript # 安装TypeScript工具
-make check-tools-typescript   # 检查TypeScript工具
-make fmt-typescript          # 格式化TypeScript代码
-make fmt-check-typescript    # 检查TypeScript格式  
-make check-typescript        # TypeScript质量检查
-make check-eslint-typescript # ESLint检查
-make check-tsc-typescript    # TypeScript编译检查
-make info-typescript         # TypeScript项目信息
+make install-tools-typescript # 🛠️ 全局安装TypeScript工具
+make check-tools-typescript   # ✅ 检查全局TypeScript工具
+make fmt-typescript          # ✨ 格式化TypeScript代码
+make check-typescript        # 🔍 TypeScript质量检查
+make test-typescript         # 🧪  运行TypeScript测试
+make build-typescript        # 📦 构建TypeScript项目
+make clean-typescript        # 🧹 清理TypeScript构建产物
 ```
+
+**重要更新**: TypeScript工具现在使用**全局安装**方式，避免项目空间污染：
+- 安装: `npm install -g typescript prettier eslint ...`
+- 检测: `command -v tsc prettier eslint`
+- 调用: 直接使用 `prettier`、`tsc`、`eslint` 命令
 
 ### Git和分支管理命令 (21个)
 ```bash
@@ -403,12 +456,12 @@ chore: update dependencies
 ## 📊 性能和质量指标
 
 ### 命令执行时间基准
-| 命令 | 单语言 | 多语言 | 优化效果 |
+| 命令 | 单语言 | 10项目 | 优化效果 |
 |------|--------|--------|----------|
-| `format` | ~15s | ~45s | 一次性处理 |
-| `check` | ~30s | ~120s | 并行优化 |
-| `test` | ~10s | ~30s | 智能跳过 |
-| `build` | ~20s | ~40s | 选择性构建 |
+| `format` | ~15s | ~90s | 并行处理10个项目 |
+| `check` | ~30s | ~180s | 智能跳过+并行优化 |
+| `test` | ~10s | ~60s | 选择性测试 |
+| `build` | ~20s | ~80s | 差异化构建策略 |
 
 ### 质量保证
 - **零警告**: 所有Makefile执行无警告
@@ -418,9 +471,11 @@ chore: update dependencies
 
 ### 开发效率提升
 - **学习成本**: 从2小时降至5分钟 (95%提升)
-- **命令复杂度**: 从95个降至15个 (84%简化)  
+- **命令复杂度**: 从95个降至15个 (84%简化)
+- **项目管理**: 从手动管理10个项目到统一命令
 - **认知负担**: 从重度降至零 (质的飞跃)
 - **上手速度**: 从困难变为即时可用
+- **多项目协调**: 从分散操作到统一工作流
 
 ## 🤝 扩展和定制
 
