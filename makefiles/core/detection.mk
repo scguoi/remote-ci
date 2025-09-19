@@ -2,36 +2,20 @@
 # Intelligent Project Detection Mechanism - Core Detection Module
 # =============================================================================
 
-# Color definitions for output (with enhanced Linux compatibility check)
-# Force disable colors by default, only enable if explicitly supported
-SHELL_SUPPORTS_COLOR := $(shell \
-	if [ -n "$$NO_COLOR" ] || [ "$$TERM" = "dumb" ]; then \
-		echo "no"; \
-	elif [ -t 1 ] && command -v tput >/dev/null 2>&1; then \
-		if tput colors >/dev/null 2>&1 && [ "$$(tput colors 2>/dev/null || echo 0)" -ge 8 ]; then \
-			echo "yes"; \
-		else \
-			echo "no"; \
-		fi; \
-	else \
-		echo "no"; \
-	fi)
-
-# Always initialize empty color variables first
+# Color definitions - simple and reliable approach
+# Disable colors completely for better Linux compatibility
 RED :=
 GREEN :=
 YELLOW :=
 BLUE :=
 RESET :=
 
-# Only set colors if definitely supported
-ifeq ($(SHELL_SUPPORTS_COLOR),yes)
-	RED := \033[31m
-	GREEN := \033[32m
-	YELLOW := \033[33m
-	BLUE := \033[34m
-	RESET := \033[0m
-endif
+# Alternative: uncomment these lines if your terminal definitely supports colors
+# RED := \033[31m
+# GREEN := \033[32m
+# YELLOW := \033[33m
+# BLUE := \033[34m
+# RESET := \033[0m
 
 # LocalCI config path (local override, then default template)
 LOCALCI_CONFIG := $(shell if [ -f .localci.toml ]; then echo .localci.toml; elif [ -f makefiles/localci.toml ]; then echo makefiles/localci.toml; fi)
