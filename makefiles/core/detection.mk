@@ -3,31 +3,34 @@
 # =============================================================================
 
 # Color definitions for output (with enhanced Linux compatibility check)
-# Check multiple conditions: TTY, NO_COLOR env var, TERM capability
+# Force disable colors by default, only enable if explicitly supported
 SHELL_SUPPORTS_COLOR := $(shell \
-	if [ -n "$(NO_COLOR)" ] || [ "$(TERM)" = "dumb" ]; then \
+	if [ -n "$$NO_COLOR" ] || [ "$$TERM" = "dumb" ]; then \
 		echo "no"; \
-	elif [ -t 1 ] && (command -v tput >/dev/null 2>&1 && tput colors >/dev/null 2>&1); then \
-		echo "yes"; \
+	elif [ -t 1 ] && command -v tput >/dev/null 2>&1; then \
+		if tput colors >/dev/null 2>&1 && [ "$$(tput colors 2>/dev/null || echo 0)" -ge 8 ]; then \
+			echo "yes"; \
+		else \
+			echo "no"; \
+		fi; \
 	else \
 		echo "no"; \
 	fi)
 
-# Debug color detection (can be removed later)
-$(info Color detection: SHELL_SUPPORTS_COLOR=$(SHELL_SUPPORTS_COLOR), TERM=$(TERM), NO_COLOR=$(NO_COLOR))
+# Always initialize empty color variables first
+RED :=
+GREEN :=
+YELLOW :=
+BLUE :=
+RESET :=
 
+# Only set colors if definitely supported
 ifeq ($(SHELL_SUPPORTS_COLOR),yes)
 	RED := \033[31m
 	GREEN := \033[32m
 	YELLOW := \033[33m
 	BLUE := \033[34m
 	RESET := \033[0m
-else
-	RED :=
-	GREEN :=
-	YELLOW :=
-	BLUE :=
-	RESET :=
 endif
 
 # LocalCI config path (local override, then default template)
